@@ -46,6 +46,10 @@ const expenseSchema = new mongoose.Schema(
           type: Boolean,
           default: false,
         },
+        paidAt: {
+          type: Date,
+          default: null,
+        },
       },
     ],
   },

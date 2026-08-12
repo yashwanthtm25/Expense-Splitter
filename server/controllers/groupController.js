@@ -286,6 +286,22 @@ exports.leaveGroup = async (req, res) => {
         memberId.toString() !== userId.toString()
     );
 
+    const isPayer = await Expense.find({
+      group: groupId,
+      "splits.user": userId,
+    });
+
+    const pendingPayer = isPayer.some((expense) =>
+      expense.splits.some(
+        (split) => split.paid === false)
+    );
+
+    if (pendingPayer) {
+      return res.status(400).json({
+        message:
+          "You cannot leave until all your payments are completed",
+      });
+    }
     await group.save();
 
     res.status(200).json({
@@ -374,6 +390,86 @@ exports.removeMember = async (req, res) => {
     console.error("Remove member error:", error);
 
     res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+exports.getGroupById = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const group = await Group.findById(groupId)
+      .populate("members", "name email")
+      .populate("admin", "name email")
+      .populate("createdBy", "name email");
+
+    if (!group) {
+      return res.status(404).json({
+        message: "Group not found",
+      });
+    }
+
+    // Check whether logged-in user belongs to group
+    const isMember = group.members.some(
+      (member) =>
+        member._id.toString() === req.user._id.toString()
+    );
+
+    if (!isMember) {
+      return res.status(403).json({
+        message: "You are not a member of this group",
+      });
+    }
+
+    res.status(200).json({
+      userId: req.user._id,
+      group,
+    });
+  } catch (error) {
+    console.error("Get group error:", error);
+
+    res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
+exports.deleteGroup = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+
+    const group = await Group.findById(groupId);
+
+    if (!group) {
+      return res.status(404).json({
+        message: "Group not found",
+      });
+    }
+
+    // Only admin can delete the group
+    if (group.admin.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Only the admin can delete the group",
+      });
+    }
+
+    // Group can be deleted only when admin is the only member
+    if (group.members.length !== 1) {
+      return res.status(400).json({
+        message: "Group can only be deleted when you are the only member",
+      });
+    }
+
+    await Group.findByIdAndDelete(groupId);
+
+    return res.status(200).json({
+      message: "Group deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete group error:", error);
+
+    return res.status(500).json({
       message: "Server error",
     });
   }

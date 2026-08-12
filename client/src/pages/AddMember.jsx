@@ -51,7 +51,7 @@ const AddMember = () => {
 
       setEmail("");
 
-      navigate("/group");
+      navigate("/groups/" + groupId);
     } catch (error) {
       toast.error(
         error.response?.data?.message || "Failed to add member"

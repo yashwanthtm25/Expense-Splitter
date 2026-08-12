@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
@@ -140,8 +139,7 @@ const Expense = () => {
                               setSelectedSplit({
                                 expenseId: expense._id,
                                 userId: split.user._id,
-                                userName:
-                                  split.user.name,
+                                userName: split.user.name,
                               })
                             }
                           >
@@ -163,6 +161,33 @@ const Expense = () => {
                   >
                     Edit
                   </button>
+
+                  <h2>Payment History</h2>
+
+                  {expense.splits
+                    .filter(
+                      (split) => split.paid && split.paidAt
+                    )
+                    .map((split) => (
+                      <div
+                        key={`${expense._id}-${split.user._id}`}
+                      >
+                        <p>
+                          {split.user.name} paid ₹
+                          {split.amount}
+                        </p>
+
+                        <p>
+                          {new Date(
+                            split.paidAt
+                          ).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    ))}
                 </>
               ) : (
                 /* =========================
@@ -189,6 +214,33 @@ const Expense = () => {
                       </p>
                     );
                   })}
+
+                  <h2>Payment History</h2>
+
+                  {expense.splits
+                    .filter(
+                      (split) => split.paid && split.paidAt
+                    )
+                    .map((split) => (
+                      <div
+                        key={`${expense._id}-${split.user._id}`}
+                      >
+                        <p>
+                          {split.user.name} paid ₹
+                          {split.amount}
+                        </p>
+
+                        <p>
+                          {new Date(
+                            split.paidAt
+                          ).toLocaleDateString("en-IN", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </p>
+                      </div>
+                    ))}
                 </>
               )}
             </div>

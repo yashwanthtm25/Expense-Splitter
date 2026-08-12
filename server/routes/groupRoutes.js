@@ -8,6 +8,8 @@ const {
   transferAdmin,
   leaveGroup,
   removeMember,
+  getGroupById,
+  deleteGroup,
 } = require("../controllers/groupController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -19,6 +21,8 @@ router.post("/", authMiddleware, createGroup);
 
 // Get groups of logged-in user
 router.get("/", authMiddleware, getMyGroups);
+
+router.get("/:groupId", authMiddleware, getGroupById);
 
 // Add a member to a group
 router.post("/:groupId/members", authMiddleware, addMember);
@@ -34,5 +38,7 @@ router.delete("/:groupId/leave", authMiddleware, leaveGroup);
 
 // Remove a member from a group
 router.delete("/:groupId/members/:userId", authMiddleware, removeMember);
+
+router.delete("/:groupId", authMiddleware, deleteGroup);
 
 module.exports = router;

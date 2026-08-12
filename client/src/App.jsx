@@ -11,6 +11,7 @@ import AddMember from "./pages/AddMember";
 import AddExpense from "./pages/AddExpense";
 import Expense from "./pages/Expense";
 import EditExpense from "./pages/EditExpense";
+import GroupDetails from "./pages/groupDetails";
 function App() {
   return (
     <BrowserRouter>
@@ -38,7 +39,7 @@ function App() {
       element={<CreateGroup />}
     />
         <Route 
-        path="/group" 
+        path="/groups" 
         element={<Group />} />
         <Route
           path="/add-member/:groupId"
@@ -55,6 +56,10 @@ function App() {
         <Route
           path="/edit-expense/:expenseId"
           element={<EditExpense />}
+        />
+        <Route
+          path="/groups/:groupId"
+          element={<GroupDetails />}
         />
       </Routes>
 
