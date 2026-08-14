@@ -30,7 +30,7 @@ const AddExpense = () => {
     const fetchGroup = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/groups/${groupId}`,
+          `${import.meta.env.VITE_API_URL}/api/groups/${groupId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -152,7 +152,7 @@ const AddExpense = () => {
       }
 
       await axios.post(
-        `http://localhost:5000/api/expenses/${groupId}`,
+        `${import.meta.env.VITE_API_URL}/api/expenses/${groupId}`,
         requestData,
         {
           headers: {

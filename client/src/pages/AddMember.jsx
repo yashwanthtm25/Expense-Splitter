@@ -36,7 +36,7 @@ const AddMember = () => {
       setLoading(true);
 
       const response = await axios.post(
-        `http://localhost:5000/api/groups/${groupId}/members`,
+        `${import.meta.env.VITE_API_URL}/api/groups/${groupId}/members`,
         {
           email: email.trim(),
         },

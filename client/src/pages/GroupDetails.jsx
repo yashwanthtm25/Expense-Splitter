@@ -35,7 +35,7 @@ const GroupDetails = () => {
   const fetchGroup = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/groups/${groupId}`,
+        `${import.meta.env.VITE_API_URL}/api/groups/${groupId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -61,7 +61,7 @@ const GroupDetails = () => {
   const fetchBalance = async () => {
     try {
       const response = await axios.get(
-        `http://localhost:5000/api/expenses/${groupId}/balance`,
+        `${import.meta.env.VITE_API_URL}/api/expenses/${groupId}/balance`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -118,7 +118,7 @@ const GroupDetails = () => {
       setLoading(true);
 
       await axios.patch(
-        `http://localhost:5000/api/groups/${groupId}`,
+        `${import.meta.env.VITE_API_URL}/api/groups/${groupId}`,
         {
           groupName: groupName.trim(),
         },
@@ -157,7 +157,7 @@ const GroupDetails = () => {
       setLoading(true);
 
       await axios.delete(
-        `http://localhost:5000/api/groups/${groupId}/members/${member._id}`,
+        `${import.meta.env.VITE_API_URL}/api/groups/${groupId}/members/${member._id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -192,7 +192,7 @@ const GroupDetails = () => {
     setLoading(true);
 
     await axios.delete(
-      `http://localhost:5000/api/groups/${groupId}`,
+      `${import.meta.env.VITE_API_URL}/api/groups/${groupId}`,
       {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -225,7 +225,7 @@ const GroupDetails = () => {
       setLoading(true);
 
       await axios.patch(
-        `http://localhost:5000/api/groups/${groupId}/admin`,
+        `${import.meta.env.VITE_API_URL}/api/groups/${groupId}/admin`,
         {
           newAdminId: member._id,
         },
@@ -265,7 +265,7 @@ const GroupDetails = () => {
       setLoading(true);
 
       await axios.delete(
-        `http://localhost:5000/api/groups/${groupId}/leave`,
+        `${import.meta.env.VITE_API_URL}/api/groups/${groupId}/leave`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

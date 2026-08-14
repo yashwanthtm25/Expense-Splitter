@@ -34,7 +34,7 @@ const Dashboard = () => {
       // -----------------------------
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/auth/getprofile",
+          "${import.meta.env.VITE_API_URL}/api/auth/getprofile",
           config
         );
 
@@ -57,7 +57,7 @@ const Dashboard = () => {
       // -----------------------------
       try {
         const response = await axios.get(
-          "http://localhost:5000/api/expenses/getmybalance",
+          "${import.meta.env.VITE_API_URL}/api/expenses/getmybalance",
           config
         );
 

@@ -34,7 +34,7 @@ const EditExpense = () => {
         setFetching(true);
 
         const response = await axios.get(
-          `http://localhost:5000/api/expenses/single/${expenseId}`,
+          `${import.meta.env.VITE_API_URL}/api/expenses/single/${expenseId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -247,7 +247,7 @@ const EditExpense = () => {
       }));
 
       await axios.put(
-        `http://localhost:5000/api/expenses/edit/${expenseId}`,
+        `${import.meta.env.VITE_API_URL}/api/expenses/edit/${expenseId}`,
         {
           amount: newAmount,
           description: description.trim(),
