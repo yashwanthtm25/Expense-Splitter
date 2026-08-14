@@ -1,462 +1,456 @@
-# Forgot Password Assignment
+# 💰 Expense Splitter
 
-## Objective
+A full-stack **MERN** application for managing groups, splitting expenses, tracking balances, and settling payments between group members.
 
-Build a secure MERN authentication system from scratch with a complete **Forgot Password** and **Reset Password** workflow.
-
-The application should allow users to register, log in, authenticate using JWT, and securely reset their password via an email link using Nodemailer.
+The application supports both equal and unequal expense splitting, payment tracking, group administration, balance summaries, expense search/filtering, and sorting.
 
 ---
 
-# Learning Objectives
+## 🚀 Features
 
-By the end of this assignment, you should understand:
+### 🔐 Authentication
+- User registration and login
+- JWT-based authentication
+- Protected backend routes
+- Authentication middleware
 
-- User Authentication using JWT
-- Password Hashing using bcrypt
-- Password Reset Workflow
-- Cryptographically Secure Tokens
-- Email Integration using Nodemailer
-- Environment Variables
-- Token Expiration
-- Backend Security Best Practices
-- Full Stack Integration (React + Express + MongoDB)
+### 👥 Group Management
+- Create groups
+- View groups
+- Edit group name
+- Add members
+- Remove members
+- Leave a group
+- Transfer admin privileges
+- Delete a group when applicable
+- Creator becomes the initial admin
+- Admin controls are based on the current admin, not only the creator
+
+### 💸 Expense Management
+- Add expenses
+- Edit expenses
+- View group expenses
+- Equal splitting
+- Unequal/custom splitting
+- Expense descriptions
+- Expense names
+- Expense amount validation
+- Prevent invalid split totals
+
+### 💳 Payment Tracking
+- Track individual member payments
+- Mark a member's split as paid
+- Automatically consider the payer's split as paid
+- Record payment date/time
+- View payment history
+- Prevent invalid payment operations
+
+### 📊 Balance Summary
+Track:
+- Amount you owe
+- Amount others owe you
+- Net balance
+
+### 🔎 Search & Filter
+**Search expenses by:**
+- Expense name
+- Description
+
+**Filter expenses by:**
+- All
+- You Paid
+- You Owe
+- You Received
+- Paid
+
+### ↕️ Expense Sorting
+Sort expenses by:
+- Newest
+- Oldest
+- Highest amount
+- Lowest amount
 
 ---
 
-# Project Structure
+## 🛠️ Tech Stack
 
-Only the following project structure has been provided:
+**Frontend**
+- React
+- React Router
+- Axios
+- React Hot Toast
+- JavaScript
+- HTML
+- CSS
 
-```text
-forgot-password-assignment/
+**Backend**
+- Node.js
+- Express.js
+- MongoDB
+- Mongoose
+- JWT
+- bcrypt
+
+**Database**
+- MongoDB
+
+---
+
+## 🏗️ Project Structure
+
+```
+Expense-Splitter/
+│
 ├── client/
+│   ├── src/
+│   │   ├── pages/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── package.json
+│   └── ...
+│
 ├── server/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── models/
+│   ├── routes/
+│   ├── server.js
+│   ├── package.json
+│   └── ...
+│
+├── .gitignore
 └── README.md
 ```
 
-No source code has been provided.
+---
 
-You are expected to build the complete application from scratch by following the requirements in this document.
+## 🧠 Core Expense Logic
+
+### Equal Split
+For example, if an expense of ₹900 is shared between three members:
+
+```
+₹900 / 3 = ₹300
+```
+
+The splits become:
+
+| Member   | Split |
+|----------|-------|
+| Member 1 | ₹300  |
+| Member 2 | ₹300  |
+| Member 3 | ₹300  |
+
+### Unequal Split
+Members can also have different split amounts.
+
+**Example — Total Expense = ₹1000**
+
+| Member   | Split |
+|----------|-------|
+| Member 1 | ₹200  |
+| Member 2 | ₹500  |
+| Member 3 | ₹300  |
+
+The application validates that:
+> Sum of all splits = Total expense amount
+
+### 💳 Payment Logic
+The payer does not owe themselves. Therefore, when an expense is created:
+
+| Role          | `paid` status |
+|---------------|----------------|
+| Payer         | `true`         |
+| Other members | `false`        |
+
+**Example — Expense = ₹900**
+
+| Member              | Split | Status  |
+|---------------------|-------|---------|
+| Yashwanth (Payer)   | ₹300  | Paid    |
+| Rahul                | ₹300  | Pending |
+| Arun                 | ₹300  | Pending |
+
+The payer's `paid = true` represents that the payer has no amount to pay themselves — it does **not** represent an actual payment made to themselves.
+
+When another member pays their split, that split is marked as paid and the payment time is recorded.
 
 ---
 
-# Assignment Scope
+## 🔒 Authorization & Business Validation
 
-This assignment requires you to implement a complete and secure MERN authentication system, including:
+Authentication and authorization are handled on the backend. Protected routes use authentication middleware to verify the logged-in user.
 
-- User Registration
-- User Login
-- Password Hashing using bcrypt
-- JWT-based Authentication
-- Protected Routes
-- MongoDB Integration
-- Forgot Password Functionality
-- Reset Password Functionality
-- Email Integration using Nodemailer
+The backend performs business validations for operations such as:
+- Accessing protected resources
+- Group administration
+- Adding and removing members
+- Transferring admin privileges
+- Leaving groups
+- Deleting groups
+- Adding expenses
+- Editing expenses
+- Marking expense splits as paid
+- Validating split amounts
+- Preventing invalid payment operations
 
-You are responsible for:
-
-- Designing the project structure
-- Building the backend APIs
-- Creating the frontend pages
-- Connecting the frontend with the backend
-- Implementing secure authentication
-- Following backend security best practices
-
-The focus of this assignment is not only functionality but also writing clean, secure, and maintainable code.
+> Frontend restrictions are used for user experience, while backend validation remains responsible for enforcing permissions and business rules.
 
 ---
 
-# Project Setup
+## 👑 Group Administration
 
-## Prerequisites
+When a group is created, the creator becomes the initial admin.
 
-Ensure the following are installed on your system:
+The admin can:
+- Add members
+- Remove members
+- Transfer admin privileges
+- Perform other administrative group operations
 
-- Node.js (v18 or above)
-- MongoDB
-- Git
-- Visual Studio Code
+The admin role is based on the group's current `admin` field rather than permanently depending on the creator — this allows administration to be transferred to another member.
 
 ---
 
-## Backend Setup
+## 💰 Balance Calculation
 
-Navigate to the `server` folder.
+The application provides both group-level and user-level balance calculations.
 
-```bash
-cd server
-
-npm init -y
+**Amount You Owe**
+The total amount of unpaid expense splits belonging to the current user.
+```
+Amount You Owe = Sum of your unpaid splits
 ```
 
-Install the required dependencies:
-
-```bash
-npm install express mongoose cors dotenv bcrypt jsonwebtoken nodemailer
+**Amount You Receive**
+The amount that other members still owe you when you are the payer.
+```
+Amount You Receive = Sum of unpaid member splits for your expenses
 ```
 
-Install development dependencies:
-
-```bash
-npm install --save-dev nodemon
+**Net Balance**
+```
+Net Balance = Amount You Receive − Amount You Owe
 ```
 
-Create a `.env` file inside the `server` folder.
+---
+
+## 🔄 Expense Payment Flow
+
+```
+Create Expense
+      │
+      ▼
+Create Splits
+      │
+      ├── Payer → paid = true
+      │
+      └── Members → paid = false
+                    │
+                    ▼
+             Member makes payment
+                    │
+                    ▼
+             Mark split as paid
+                    │
+                    ▼
+               Record paidAt
+                    │
+                    ▼
+              Update balances
+```
+
+## 🔎 Search & Filter Flow
+
+```
+All Expenses
+      │
+      ▼
+Search by expense name / description
+      │
+      ▼
+Apply Filter
+      │
+      ├── All
+      ├── You Paid
+      ├── You Owe
+      ├── You Received
+      └── Paid
+      │
+      ▼
+Apply Sorting
+      │
+      ├── Newest
+      ├── Oldest
+      ├── Highest Amount
+      └── Lowest Amount
+      │
+      ▼
+Display Expenses
+```
+
+---
+
+## 🌐 API Documentation
+
+**Base URL:** `/api`
+
+All protected routes require a JWT token:
+```
+Authorization: Bearer <token>
+```
+
+### 🔐 Authentication API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/auth/register` | Creates a new user account. |
+| `POST` | `/api/auth/login` | Authenticates a user and returns authentication information. |
+| `POST` | `/api/auth/forgot-password` | Initiates the forgot-password process. |
+| `POST` | `/api/auth/reset-password/:token` | Resets the user's password using the reset token. |
+| `GET`  | `/api/auth/getprofile` | 🔒 Returns the profile of the authenticated user. |
+
+### 👥 Group API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST`   | `/api/groups` | 🔒 Creates a new group. The creator becomes the initial admin. |
+| `GET`    | `/api/groups` | 🔒 Returns the groups that the logged-in user belongs to. |
+| `GET`    | `/api/groups/:groupId` | 🔒 Returns details of a specific group. |
+| `POST`   | `/api/groups/:groupId/members` | 🔒 Adds a member to a group. |
+| `PATCH`  | `/api/groups/:groupId` | 🔒 Updates group details such as the group name. |
+| `PATCH`  | `/api/groups/:groupId/admin` | 🔒 Transfers administrative privileges to another group member. |
+| `DELETE` | `/api/groups/:groupId/leave` | 🔒 Allows the authenticated user to leave the group, subject to business rules. |
+| `DELETE` | `/api/groups/:groupId/members/:userId` | 🔒 Removes a member from the group, subject to authorization and business rules. |
+| `DELETE` | `/api/groups/:groupId` | 🔒 Deletes a group, subject to the application's group deletion rules. |
+
+### 💸 Expense API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST`  | `/api/expenses/:groupId` | 🔒 Creates an expense inside a group. Supports equal and unequal splitting. |
+| `GET`   | `/api/expenses/:groupId` | 🔒 Returns all expenses belonging to a group. |
+| `PATCH` | `/api/expenses/:expenseId/pay/:userId` | 🔒 Marks a particular member's expense split as paid. |
+| `GET`   | `/api/expenses/single/:expenseId` | 🔒 Returns details of a specific expense. |
+| `PUT`   | `/api/expenses/edit/:expenseId` | 🔒 Updates an existing expense, validating split information per business rules. |
+| `GET`   | `/api/expenses/:groupId/balance` | 🔒 Returns the balance information for a group. |
+| `GET`   | `/api/expenses/getmybalance` | 🔒 Returns the authenticated user's overall balance information. |
+
+🔒 = Protected route (requires JWT)
+
+---
+
+## 🔑 Environment Variables
+
+Create a `.env` file inside the `server` directory:
 
 ```env
 PORT=5000
-
-MONGO_URI=
-
-JWT_SECRET=
-
-EMAIL_USER=
-
-EMAIL_PASS=
-
-CLIENT_URL=http://localhost:5173
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
 ```
 
-Update the `package.json` scripts.
-
-```json
-"scripts": {
-  "dev": "nodemon server.js",
-  "start": "node server.js"
-}
+> ⚠️ Do not commit `.env` files or secret credentials to GitHub. Make sure `.env` is included in `.gitignore`:
+```
+node_modules/
+.env
 ```
 
 ---
 
-## Frontend Setup
+## ⚙️ Installation & Setup
 
-Navigate to the `client` folder.
-
+### 1. Clone the Repository
 ```bash
-cd ../client
-
-npm create vite@latest . -- --template react
+git clone YOUR_GITHUB_REPOSITORY_URL
+cd Expense-Splitter
 ```
 
-Install dependencies:
-
+### 2. 🖥️ Backend Setup
 ```bash
+cd server
 npm install
 ```
 
-Install additional packages:
-
+Create the `.env` file (see [Environment Variables](#-environment-variables) above), then start the backend:
 ```bash
-npm install axios react-router-dom react-hot-toast
-```
-
-Run the frontend.
-
-```bash
+npm start
+# or, if the project uses nodemon:
 npm run dev
 ```
 
----
+The backend will run on: `http://localhost:5000`
 
-## Run the Backend
-
-Navigate back to the `server` folder.
-
+### 3. 💻 Frontend Setup
+Open another terminal:
 ```bash
-cd ../server
-
+cd client
+npm install
 npm run dev
 ```
 
----
-
-# Features to Implement
-
-## 1. User Authentication
-
-Implement the following authentication features:
-
-- User Registration
-- User Login
-- Password Hashing using bcrypt
-- JWT Authentication
-- Protected Routes
+Open the URL shown by Vite in the terminal.
 
 ---
 
-## 2. Forgot Password API
+## 🛡️ Security
 
-Create the endpoint:
-
-```
-POST /api/auth/forgot-password
-```
-
-### Request Body
-
-```json
-{
-  "email": "user@example.com"
-}
-```
-
-### Expected Behaviour
-
-- Validate the email address.
-- Check whether the user exists.
-- Generate a cryptographically secure random token using the Node.js `crypto` module.
-- Store the reset token in the database.
-- Store an expiry time (e.g., 15 minutes).
-- Send a password reset email containing the reset link.
+The application uses several security mechanisms:
+- JWT-based authentication
+- Protected API routes
+- Authentication middleware
+- Password hashing with bcrypt
+- Backend authorization
+- Backend business validation
+- Environment variables for sensitive configuration
+- MongoDB/Mongoose validation
+- CORS configuration
 
 ---
 
-## 3. Email Integration
+## 📚 Learning Outcomes
 
-Use **Nodemailer** to send password reset emails.
-
-The email should contain a reset link similar to:
-
-```
-http://localhost:5173/reset-password/<token>
-```
-
-The email should also clearly mention:
-
-- The link expiry time.
-- That the link should not be shared.
-- That the user can ignore the email if they did not request a password reset.
-
----
-
-## 4. Reset Password API
-
-Create the endpoint:
-
-```
-POST /api/auth/reset-password/:token
-```
-
-### Request Body
-
-```json
-{
-  "password": "newPassword"
-}
-```
-
-### Expected Behaviour
-
-- Validate the reset token.
-- Check whether the token has expired.
-- Hash the new password using bcrypt.
-- Update the user's password.
-- Remove the reset token after successful password reset.
+This project provided practical experience with:
+- MERN stack development
+- React application development
+- REST API development
+- JWT authentication & authorization
+- Express middleware
+- MongoDB data modeling & Mongoose
+- MongoDB relationships using ObjectId references
+- React Router & Axios
+- React state management
+- Backend business validation
+- Expense calculations & unequal expense splitting
+- Payment tracking
+- Group administration
+- Balance calculation
+- Search, filtering, and sorting
+- Error handling
 
 ---
 
-## 5. Database Changes
+## 🚧 Future Improvements
 
-Modify your User schema to support password reset by storing:
-
-- Reset Password Token
-- Reset Token Expiry Time
-
-You may choose appropriate field names and data types.
-
----
-
-## 6. Frontend
-
-Create the following pages.
-
-### Registration Page
-
-Include:
-
-- Name
-- Email
-- Password
-- Register Button
+- Expense categories
+- Category-wise spending summaries
+- Charts and analytics
+- Pagination for large expense lists
+- Notifications (including email notifications)
+- Recurring expenses
+- Partial payments
+- Improved mobile UI
+- Advanced dashboard analytics
 
 ---
 
-### Login Page
+## 👨‍💻 Author
 
-Include:
-
-- Email
-- Password
-- Login Button
-- Forgot Password Link
+**Yashwanth T M**
+Computer Science Engineering Student
 
 ---
 
-### Forgot Password Page
+## 📄 License
 
-Include:
-
-- Email Input
-- Send Reset Link Button
-
----
-
-### Reset Password Page
-
-Include:
-
-- New Password
-- Confirm Password
-- Reset Password Button
-
----
-
-# Validation
-
-Implement proper validation.
-
-## Registration
-
-- Name is required.
-- Email is required.
-- Email must be valid.
-- Password must meet your chosen security requirements.
-
----
-
-## Login
-
-- Email is required.
-- Password is required.
-
----
-
-## Forgot Password
-
-- Email is required.
-- Email format must be valid.
-- Handle cases where the user does not exist.
-
----
-
-## Reset Password
-
-- Password is required.
-- Confirm Password is required.
-- Passwords must match.
-- Invalid token handling.
-- Expired token handling.
-
----
-
-# Security Requirements
-
-Implement the following security best practices:
-
-- Never store plain text passwords.
-- Always hash passwords using bcrypt.
-- Generate reset tokens using the Node.js `crypto` module.
-- Reset tokens must expire automatically.
-- Clear the reset token after a successful password reset.
-- Do not reveal whether an email exists unnecessarily.
-- Never hardcode credentials or secrets.
-- Store all sensitive information inside the `.env` file.
-- Validate all user inputs before processing requests.
-
----
-
-# Environment Variables
-
-Create a `.env` file inside the `server` folder.
-
-```env
-PORT=5000
-
-MONGO_URI=
-
-JWT_SECRET=
-
-EMAIL_USER=
-
-EMAIL_PASS=
-
-CLIENT_URL=http://localhost:5173
-```
-
----
-
-# API Endpoints
-
-| Method | Endpoint | Description |
-|---------|----------|-------------|
-| POST | `/api/auth/register` | Register a new user |
-| POST | `/api/auth/login` | Authenticate a user |
-| POST | `/api/auth/forgot-password` | Generate a password reset token |
-| POST | `/api/auth/reset-password/:token` | Reset the user's password |
-
----
-
-# Expected Flow
-
-1. User registers.
-2. User logs in successfully.
-3. User clicks **Forgot Password**.
-4. User enters their registered email.
-5. Backend generates a secure reset token.
-6. Backend sends a password reset email.
-7. User clicks the reset link.
-8. User enters a new password.
-9. Backend validates the token.
-10. Password is updated.
-11. Reset token is removed.
-12. User logs in with the new password.
-
----
-
-# Bonus Tasks
-
-Complete any of the following.
-
-## Easy
-
-- Show a loading spinner while sending the email.
-- Disable buttons while requests are in progress.
-- Display success and error notifications using `react-hot-toast`.
-
----
-
-## Medium
-
-- Prevent multiple password reset requests within one minute.
-- Hash the reset token before storing it in the database.
-- Add password strength validation.
-
----
-
-## Hard
-
-- Send a professionally styled HTML email.
-- Allow users to request another reset link after expiry.
-- Log password reset events.
-- Implement refresh tokens for authentication.
-
----
-
-# Submission Requirements
-
-Push your completed project to GitHub.
-
-Your repository should include:
-
-- Complete source code
-- A well-written `README.md`
-- Proper Git commit history
-- Working authentication system
-- Working Forgot Password flow
-- Working Reset Password flow
-- A `.env.example` file (do **not** commit your actual `.env`)
-
----
-
+This project is created for educational and portfolio purposes.
