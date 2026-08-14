@@ -151,7 +151,7 @@ exports.addExpense = async (req, res) => {
         user: split.user,
         amount: Number(split.amount),
         paid:
-          split.user.toString() === req.user._id.toString(),
+          split.user.toString() === req.user._id.toString() || split.amount === 0,
       }));
     }
 
@@ -348,7 +348,7 @@ exports.editExpense = async (req, res) => {
     );
 
     const alreadyPaid = otherSplits.some(
-      (split) => split.paid === true
+      (split) => split.paid === true && split.amount > 0
     );
 
     if (alreadyPaid) {
@@ -395,6 +395,17 @@ exports.editExpense = async (req, res) => {
     if (expenseName !== undefined) {
       expense.expenseName = expenseName.trim();
     }
+    splits.map((split) => {
+      if(split.amount  > 0 ) {
+        split.paid = false;
+      }
+      if(split.amount === 0) {
+        split.paid = true;
+      }
+      if(split.user === expense.paidBy.toString()) {
+        split.paid = true;
+      }
+    });
     expense.splits = splits;
     await expense.save();
 

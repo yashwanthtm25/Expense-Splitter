@@ -152,7 +152,7 @@ exports.updateGroup = async (req, res) => {
     await group.save();
 
     res.status(200).json({
-      message: "Group updated successfully",
+      message: "Group name updated successfully",
       group,
     });
   } catch (error) {

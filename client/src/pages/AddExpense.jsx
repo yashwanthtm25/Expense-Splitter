@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import toast from "react-hot-toast";
 
 const AddExpense = () => {
@@ -189,115 +189,294 @@ const AddExpense = () => {
     }
   };
 
+  const styles = {
+    page: {
+      minHeight: "100vh",
+      background: "#f5f6fa",
+      fontFamily: "'Segoe UI', Arial, sans-serif",
+      padding: "40px 20px",
+    },
+    container: {
+      maxWidth: "480px",
+      margin: "0 auto",
+    },
+    backLink: {
+      display: "inline-block",
+      marginBottom: "20px",
+      color: "#6b7280",
+      textDecoration: "none",
+      fontSize: "14px",
+    },
+    card: {
+      background: "#fff",
+      padding: "36px",
+      borderRadius: "12px",
+      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
+    },
+    heading: {
+      margin: "0 0 24px 0",
+      color: "#1f2937",
+      fontSize: "24px",
+      fontWeight: 700,
+    },
+    form: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "16px",
+    },
+    field: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "6px",
+    },
+    label: {
+      fontSize: "14px",
+      fontWeight: 600,
+      color: "#374151",
+    },
+    input: {
+      padding: "12px 14px",
+      borderRadius: "8px",
+      border: "1px solid #d1d5db",
+      fontSize: "15px",
+      outline: "none",
+      width: "100%",
+      boxSizing: "border-box",
+    },
+    splitTypeWrap: {
+      background: "#f9fafb",
+      borderRadius: "10px",
+      padding: "14px 16px",
+    },
+    splitTypeTitle: {
+      margin: "0 0 10px 0",
+      fontSize: "14px",
+      fontWeight: 600,
+      color: "#374151",
+    },
+    radioRow: {
+      display: "flex",
+      gap: "20px",
+    },
+    radioLabel: {
+      display: "flex",
+      alignItems: "center",
+      gap: "6px",
+      fontSize: "14px",
+      color: "#374151",
+      cursor: "pointer",
+    },
+    unequalBox: {
+      background: "#f9fafb",
+      borderRadius: "10px",
+      padding: "16px",
+      display: "flex",
+      flexDirection: "column",
+      gap: "12px",
+    },
+    unequalTitle: {
+      margin: 0,
+      fontSize: "14px",
+      fontWeight: 600,
+      color: "#374151",
+    },
+    memberSplitRow: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "12px",
+    },
+    memberSplitLabel: {
+      fontSize: "14px",
+      color: "#374151",
+      flex: 1,
+    },
+    memberSplitInput: {
+      width: "110px",
+      padding: "8px 10px",
+      borderRadius: "6px",
+      border: "1px solid #d1d5db",
+      fontSize: "14px",
+      outline: "none",
+      textAlign: "right",
+    },
+    splitSummary: {
+      display: "flex",
+      justifyContent: "space-between",
+      fontSize: "13px",
+      color: "#6b7280",
+      paddingTop: "8px",
+      borderTop: "1px solid #e5e7eb",
+    },
+    statusMatch: {
+      margin: 0,
+      fontSize: "13px",
+      fontWeight: 600,
+      color: "#16a34a",
+    },
+    statusExceeds: {
+      margin: 0,
+      fontSize: "13px",
+      fontWeight: 600,
+      color: "#dc2626",
+    },
+    statusRemaining: {
+      margin: 0,
+      fontSize: "13px",
+      fontWeight: 600,
+      color: "#d97706",
+    },
+    button: {
+      marginTop: "8px",
+      padding: "13px 14px",
+      borderRadius: "8px",
+      border: "none",
+      background: "#4f46e5",
+      color: "#fff",
+      fontSize: "15px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    buttonDisabled: {
+      background: "#a5a6f0",
+      cursor: "not-allowed",
+    },
+  };
+
   return (
-    <div>
-      <h2>Add Expense</h2>
+    <div style={styles.page}>
+      <div style={styles.container}>
+        <Link to={`/groups/${groupId}`} style={styles.backLink}>
+          ← Back to Group
+        </Link>
 
-      <form onSubmit={handleAddExpense}>
-        <input
-          type="text"
-          placeholder="Enter expense name"
-          value={expenseName}
-          onChange={(e) => setExpenseName(e.target.value)}
-        />
+        <div style={styles.card}>
+          <h2 style={styles.heading}>Add Expense</h2>
 
-        <input
-          type="number"
-          placeholder="Enter amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
+          <form onSubmit={handleAddExpense} style={styles.form}>
+            <div style={styles.field}>
+              <label style={styles.label}>Expense Name</label>
+              <input
+                type="text"
+                placeholder="Enter expense name"
+                value={expenseName}
+                onChange={(e) => setExpenseName(e.target.value)}
+                style={styles.input}
+              />
+            </div>
 
-        <input
-          type="text"
-          placeholder="Enter description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+            <div style={styles.field}>
+              <label style={styles.label}>Amount</label>
+              <input
+                type="number"
+                placeholder="Enter amount"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                style={styles.input}
+              />
+            </div>
 
-        {/* Split Type */}
-        <div>
-          <p>Split Type</p>
+            <div style={styles.field}>
+              <label style={styles.label}>Description</label>
+              <input
+                type="text"
+                placeholder="Enter description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                style={styles.input}
+              />
+            </div>
 
-          <label>
-            <input
-              type="radio"
-              value="equal"
-              checked={splitType === "equal"}
-              onChange={(e) => setSplitType(e.target.value)}
-            />
-            Equal
-          </label>
+            {/* Split Type */}
+            <div style={styles.splitTypeWrap}>
+              <p style={styles.splitTypeTitle}>Split Type</p>
 
-          <label>
-            <input
-              type="radio"
-              value="unequal"
-              checked={splitType === "unequal"}
-              onChange={(e) => setSplitType(e.target.value)}
-            />
-            Unequal
-          </label>
-        </div>
-
-        {/* Unequal Split */}
-        {splitType === "unequal" && (
-          <div>
-            <h3>Enter each person's share</h3>
-
-            {members.map((member) => (
-              <div key={member._id}>
-                <label>
-                  {member.name || member.username || member.email}
+              <div style={styles.radioRow}>
+                <label style={styles.radioLabel}>
+                  <input
+                    type="radio"
+                    value="equal"
+                    checked={splitType === "equal"}
+                    onChange={(e) => setSplitType(e.target.value)}
+                  />
+                  Equal
                 </label>
 
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="Amount"
-                  value={splits[member._id] || ""}
-                  onChange={(e) =>
-                    handleSplitChange(member._id, e.target.value)
-                  }
-                />
+                <label style={styles.radioLabel}>
+                  <input
+                    type="radio"
+                    value="unequal"
+                    checked={splitType === "unequal"}
+                    onChange={(e) => setSplitType(e.target.value)}
+                  />
+                  Unequal
+                </label>
               </div>
-            ))}
+            </div>
 
-            <p>
-              Entered: ₹{splitTotal.toFixed(2)}
-            </p>
+            {/* Unequal Split */}
+            {splitType === "unequal" && (
+              <div style={styles.unequalBox}>
+                <p style={styles.unequalTitle}>Enter each person's share</p>
 
-            <p>
-              Total: ₹{numericAmount.toFixed(2)}
-            </p>
+                {members.map((member) => (
+                  <div key={member._id} style={styles.memberSplitRow}>
+                    <label style={styles.memberSplitLabel}>
+                      {member.name || member.username || member.email}
+                    </label>
 
-            {Math.abs(splitTotal - numericAmount) < 0.01 &&
-              numericAmount > 0 && (
-                <p>✓ Split amounts match</p>
-              )}
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="Amount"
+                      value={splits[member._id] || ""}
+                      onChange={(e) =>
+                        handleSplitChange(member._id, e.target.value)
+                      }
+                      style={styles.memberSplitInput}
+                    />
+                  </div>
+                ))}
 
-            {splitTotal > numericAmount && (
-              <p>
-                ⚠ Split exceeds total by ₹
-                {(splitTotal - numericAmount).toFixed(2)}
-              </p>
+                <div style={styles.splitSummary}>
+                  <span>Entered: ₹{splitTotal.toFixed(2)}</span>
+                  <span>Total: ₹{numericAmount.toFixed(2)}</span>
+                </div>
+
+                {Math.abs(splitTotal - numericAmount) < 0.01 &&
+                  numericAmount > 0 && (
+                    <p style={styles.statusMatch}>✓ Split amounts match</p>
+                  )}
+
+                {splitTotal > numericAmount && (
+                  <p style={styles.statusExceeds}>
+                    ⚠ Split exceeds total by ₹
+                    {(splitTotal - numericAmount).toFixed(2)}
+                  </p>
+                )}
+
+                {splitTotal < numericAmount && splitTotal > 0 && (
+                  <p style={styles.statusRemaining}>
+                    Remaining: ₹{(numericAmount - splitTotal).toFixed(2)}
+                  </p>
+                )}
+              </div>
             )}
 
-            {splitTotal < numericAmount &&
-              splitTotal > 0 && (
-                <p>
-                  Remaining: ₹
-                  {(numericAmount - splitTotal).toFixed(2)}
-                </p>
-              )}
-          </div>
-        )}
-
-        <button type="submit" disabled={loading}>
-          {loading ? "Adding..." : "Add Expense"}
-        </button>
-      </form>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                ...styles.button,
+                ...(loading ? styles.buttonDisabled : {}),
+              }}
+            >
+              {loading ? "Adding..." : "Add Expense"}
+            </button>
+          </form>
+        </div>
+      </div>
     </div>
   );
 };

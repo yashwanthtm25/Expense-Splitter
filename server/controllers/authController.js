@@ -123,22 +123,40 @@ exports.forgotPassword = async (req, res) => {
     const resetLink = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
     const html = `
-        <h2>Password Reset Request</h2>
+    <div style="font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+        <h2 style="margin: 0 0 16px; font-size: 20px;">Password Reset Request</h2>
 
-        <p>You requested a password reset.</p>
+        <p style="margin: 0 0 20px; line-height: 1.5;">
+            We received a request to reset your password. Click the button below to choose a new one.
+        </p>
 
-        <p>
-            <a href="${resetLink}">
+        <p style="margin: 0 0 24px;">
+            <a href="${resetLink}"
+               style="display: inline-block; background-color: #2563eb; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: 600;">
                 Reset Password
             </a>
         </p>
 
-        <p>This link expires in <b>15 minutes</b>.</p>
+        <p style="margin: 0 0 12px; font-size: 14px; color: #555;">
+            Or copy and paste this link into your browser:<br>
+            <a href="${resetLink}" style="color: #2563eb; word-break: break-all;">${resetLink}</a>
+        </p>
 
-        <p>Please do not share this link.</p>
+        <p style="margin: 0 0 12px; font-size: 14px; color: #555;">
+            This link expires in <b>15 minutes</b> and can only be used once.
+        </p>
 
-        <p>If you did not request this, simply ignore this email.</p>
-    `;
+        <p style="margin: 0 0 12px; font-size: 14px; color: #555;">
+            For your security, please don't share this link with anyone.
+        </p>
+
+        <hr style="border: none; border-top: 1px solid #e5e5e5; margin: 24px 0;">
+
+        <p style="margin: 0; font-size: 13px; color: #888;">
+            If you didn't request a password reset, you can safely ignore this email — your password will remain unchanged.
+        </p>
+    </div>
+`;
 
     await sendEmail(
       user.email,

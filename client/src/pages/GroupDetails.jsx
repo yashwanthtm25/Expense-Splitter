@@ -14,6 +14,9 @@ const GroupDetails = () => {
   const [loading, setLoading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
 
+  // Members dropdown
+  const [membersOpen, setMembersOpen] = useState(false);
+
   // Confirmation modal
   const [confirmation, setConfirmation] = useState({
     type: null,
@@ -126,7 +129,7 @@ const GroupDetails = () => {
         }
       );
 
-      toast.success("Group updated successfully");
+      toast.success("Group name updated successfully");
 
       setEditingGroup(false);
 
@@ -213,8 +216,8 @@ const GroupDetails = () => {
   // Transfer admin
   // --------------------------------------------------
 
-  const handleTransferAdmin = async () => {
-    const member = confirmation.member;
+  const handleTransferAdmin = async (memberArg) => {
+    const member = memberArg || confirmation.member;
 
     if (!member) return;
 
@@ -308,15 +311,374 @@ const GroupDetails = () => {
   };
 
   // --------------------------------------------------
+  // Styles
+  // --------------------------------------------------
+
+  const styles = {
+    page: {
+      minHeight: "100vh",
+      background: "#f5f6fa",
+      fontFamily: "'Segoe UI', Arial, sans-serif",
+      padding: "40px 20px",
+    },
+    loadingWrap: {
+      minHeight: "100vh",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      background: "#f5f6fa",
+      fontFamily: "'Segoe UI', Arial, sans-serif",
+      color: "#6b7280",
+      fontSize: "16px",
+    },
+    container: {
+      maxWidth: "680px",
+      margin: "0 auto",
+    },
+    backButton: {
+      background: "none",
+      border: "none",
+      color: "#6b7280",
+      fontSize: "14px",
+      cursor: "pointer",
+      padding: 0,
+      marginBottom: "20px",
+    },
+    headerRow: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "12px",
+      marginBottom: "6px",
+    },
+    heading: {
+      fontSize: "28px",
+      fontWeight: 700,
+      color: "#1f2937",
+      margin: 0,
+    },
+    editButton: {
+      padding: "6px 14px",
+      borderRadius: "8px",
+      border: "1px solid #d1d5db",
+      background: "#fff",
+      color: "#374151",
+      fontSize: "13px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    editRow: {
+      display: "flex",
+      gap: "8px",
+      marginBottom: "6px",
+    },
+    input: {
+      flex: 1,
+      padding: "10px 12px",
+      borderRadius: "8px",
+      border: "1px solid #d1d5db",
+      fontSize: "15px",
+      outline: "none",
+    },
+    saveButton: {
+      padding: "10px 16px",
+      borderRadius: "8px",
+      border: "none",
+      background: "#4f46e5",
+      color: "#fff",
+      fontSize: "14px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    cancelButton: {
+      padding: "10px 16px",
+      borderRadius: "8px",
+      border: "1px solid #d1d5db",
+      background: "#fff",
+      color: "#374151",
+      fontSize: "14px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    metaCard: {
+      background: "#fff",
+      borderRadius: "12px",
+      padding: "16px 20px",
+      boxShadow: "0 4px 12px rgba(0, 0, 0, 0.06)",
+      marginBottom: "20px",
+      marginTop: "16px",
+    },
+    metaLine: {
+      margin: "2px 0",
+      fontSize: "14px",
+      color: "#4b5563",
+    },
+    metaTag: {
+      display: "inline-block",
+      marginTop: "6px",
+      padding: "3px 10px",
+      borderRadius: "999px",
+      background: "#eef2ff",
+      color: "#4f46e5",
+      fontSize: "12px",
+      fontWeight: 600,
+      marginRight: "6px",
+    },
+    sectionCard: {
+      background: "#fff",
+      borderRadius: "12px",
+      padding: "22px 24px",
+      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
+      marginBottom: "20px",
+    },
+    sectionTitle: {
+      margin: "0 0 16px 0",
+      fontSize: "18px",
+      fontWeight: 700,
+      color: "#1f2937",
+    },
+    // ----- Balance summary: label + amount on same line -----
+    balanceList: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "2px",
+    },
+    balanceRow: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "12px 4px",
+      borderBottom: "1px solid #f3f4f6",
+    },
+    balanceLabel: {
+      margin: 0,
+      fontSize: "14px",
+      color: "#6b7280",
+      fontWeight: 600,
+    },
+    balanceValue: {
+      margin: 0,
+      fontSize: "16px",
+      fontWeight: 700,
+      color: "#1f2937",
+    },
+    // ----- Members dropdown -----
+    membersToggle: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      cursor: "pointer",
+      userSelect: "none",
+    },
+    chevron: (open) => ({
+      display: "inline-block",
+      transition: "transform 0.2s ease",
+      transform: open ? "rotate(180deg)" : "rotate(0deg)",
+      fontSize: "14px",
+      color: "#6b7280",
+    }),
+    membersList: {
+      marginTop: "10px",
+    },
+    memberRow: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "12px 0",
+      borderBottom: "1px solid #f3f4f6",
+      flexWrap: "wrap",
+      gap: "8px",
+    },
+    memberName: {
+      fontSize: "15px",
+      color: "#1f2937",
+      fontWeight: 500,
+    },
+    memberTag: {
+      fontSize: "12px",
+      color: "#6b7280",
+      fontWeight: 500,
+    },
+    memberActions: {
+      display: "flex",
+      gap: "8px",
+    },
+    smallButton: {
+      padding: "6px 12px",
+      borderRadius: "6px",
+      border: "1px solid #d1d5db",
+      background: "#fff",
+      color: "#374151",
+      fontSize: "13px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    smallDangerButton: {
+      padding: "6px 12px",
+      borderRadius: "6px",
+      border: "1px solid #fecaca",
+      background: "#fff",
+      color: "#dc2626",
+      fontSize: "13px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    actionsRow: {
+      display: "flex",
+      gap: "12px",
+      flexWrap: "wrap",
+      marginBottom: "20px",
+    },
+    primaryButton: {
+      flex: "1 1 160px",
+      padding: "14px 18px",
+      borderRadius: "8px",
+      border: "none",
+      background: "#4f46e5",
+      color: "#fff",
+      fontSize: "15px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    secondaryButton: {
+      flex: "1 1 160px",
+      padding: "14px 18px",
+      borderRadius: "8px",
+      border: "1px solid #4f46e5",
+      background: "#fff",
+      color: "#4f46e5",
+      fontSize: "15px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    dangerButtonFull: {
+      width: "100%",
+      padding: "14px 18px",
+      borderRadius: "8px",
+      border: "1px solid #fecaca",
+      background: "#fff",
+      color: "#dc2626",
+      fontSize: "15px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    overlay: {
+      position: "fixed",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      background: "rgba(17, 24, 39, 0.5)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "20px",
+      zIndex: 50,
+    },
+    modal: {
+      background: "#fff",
+      borderRadius: "14px",
+      padding: "28px",
+      maxWidth: "400px",
+      width: "100%",
+      boxShadow: "0 20px 40px rgba(0, 0, 0, 0.2)",
+    },
+    modalTitle: {
+      margin: "0 0 12px 0",
+      fontSize: "20px",
+      fontWeight: 700,
+      color: "#1f2937",
+    },
+    modalText: {
+      margin: "0 0 8px 0",
+      fontSize: "14px",
+      color: "#4b5563",
+      lineHeight: 1.5,
+    },
+    modalActions: {
+      display: "flex",
+      gap: "10px",
+      marginTop: "22px",
+    },
+    modalCancelButton: {
+      flex: 1,
+      padding: "11px 16px",
+      borderRadius: "8px",
+      border: "1px solid #d1d5db",
+      background: "#fff",
+      color: "#374151",
+      fontSize: "14px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    modalConfirmButton: {
+      flex: 1,
+      padding: "11px 16px",
+      borderRadius: "8px",
+      border: "none",
+      background: "#4f46e5",
+      color: "#fff",
+      fontSize: "14px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    modalDangerButton: {
+      flex: 1,
+      padding: "11px 16px",
+      borderRadius: "8px",
+      border: "none",
+      background: "#dc2626",
+      color: "#fff",
+      fontSize: "14px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    transferPickerList: {
+      maxHeight: "260px",
+      overflowY: "auto",
+      margin: "0 0 8px 0",
+    },
+    transferPickerRow: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "10px",
+      padding: "10px 0",
+      borderBottom: "1px solid #f3f4f6",
+    },
+    transferPickerName: {
+      fontSize: "14px",
+      color: "#1f2937",
+      fontWeight: 500,
+    },
+    transferPickerButton: {
+      flexShrink: 0,
+      padding: "7px 14px",
+      borderRadius: "6px",
+      border: "none",
+      background: "#4f46e5",
+      color: "#fff",
+      fontSize: "13px",
+      fontWeight: 600,
+      cursor: "pointer",
+    },
+    transferPickerEmpty: {
+      fontSize: "14px",
+      color: "#6b7280",
+      margin: "0 0 8px 0",
+    },
+  };
+
+  // --------------------------------------------------
   // Loading
   // --------------------------------------------------
 
   if (pageLoading) {
-    return <p>Loading group...</p>;
+    return <div style={styles.loadingWrap}>Loading group...</div>;
   }
 
   if (!group) {
-    return <p>Group not found</p>;
+    return <div style={styles.loadingWrap}>Group not found</div>;
   }
 
   // --------------------------------------------------
@@ -330,33 +692,33 @@ const GroupDetails = () => {
     const isOnlyMember = group.members.length === 1;
 
   return (
-    <div>
-      {/* =================================================
-          BACK
-      ================================================= */}
+    <div style={styles.page}>
+      <div style={styles.container}>
+        {/* =================================================
+            BACK
+        ================================================= */}
 
-      <button onClick={() => navigate("/groups")}>
-        ← Back to Groups
-      </button>
+        <button style={styles.backButton} onClick={() => navigate("/groups")}>
+          ← Back to Groups
+        </button>
 
-      {/* =================================================
-          GROUP NAME
-      ================================================= */}
+        {/* =================================================
+            GROUP NAME
+        ================================================= */}
 
-      <div>
         {editingGroup ? (
-          <>
+          <div style={styles.editRow}>
             <input
               type="text"
               value={groupName}
-              onChange={(e) =>
-                setGroupName(e.target.value)
-              }
+              onChange={(e) => setGroupName(e.target.value)}
+              style={styles.input}
             />
 
             <button
               onClick={handleUpdateGroup}
               disabled={loading}
+              style={styles.saveButton}
             >
               {loading ? "Updating..." : "Save"}
             </button>
@@ -367,371 +729,454 @@ const GroupDetails = () => {
                 setGroupName(group.groupName);
               }}
               disabled={loading}
+              style={styles.cancelButton}
             >
               Cancel
             </button>
-          </>
+          </div>
         ) : (
-          <>
-            <h1>{group.groupName}</h1>
+          <div style={styles.headerRow}>
+            <h1 style={styles.heading}>{group.groupName}</h1>
 
             {/* Only ADMIN can edit */}
             {isAdmin && (
               <button
+                style={styles.editButton}
                 onClick={() => setEditingGroup(true)}
               >
                 Edit
               </button>
             )}
-          </>
-        )}
-      </div>
-
-      {/* =================================================
-          ADMIN
-      ================================================= */}
-
-      <div>
-        <h3>
-          Admin: {group.admin?.name}
-        </h3>
-        <h3>
-            Created by: {group.createdBy?.name}
-        </h3>
-
-        {isAdmin && <p>You are the admin.</p>}
-        {isCreator && <p>You are the creator of this group.</p>}
-      </div>
-
-      {/* =================================================
-          BALANCE SUMMARY
-      ================================================= */}
-
-      {balance && (
-        <div>
-          <h2>Balance Summary</h2>
-
-          <p>
-            You paid: ₹
-            {Number(balance.totalPaid).toFixed(2)}
-          </p>
-
-          <p>
-            You owe: ₹
-            {Number(balance.totalOwe).toFixed(2)}
-          </p>
-
-          <p>
-            You should receive: ₹
-            {Number(balance.totalReceive).toFixed(2)}
-          </p>
-
-          <p>
-            Net balance: ₹
-            {Number(balance.netBalance).toFixed(2)}
-          </p>
-        </div>
-      )}
-
-      {/* =================================================
-          MEMBERS
-      ================================================= */}
-
-      <div>
-        <h2>
-          Members ({group.members.length})
-        </h2>
-
-        {group.members.map((member) => {
-          const isCurrentUser =
-            String(member._id) === String(userId);
-
-          const isMemberAdmin =
-            String(member._id) ===
-            String(group.admin?._id);
-          const isMemberCreator =
-            String(member._id) ===
-            String(group.createdBy?._id);
-
-          return (
-            <div key={member._id}>
-              <span>
-                {member.name}
-
-                {isMemberAdmin && " — Admin"}
-
-                {isCurrentUser && " — You"}
-                
-                {isMemberCreator && " — Creator"}
-              </span>
-
-              {/* =========================================
-                  ADMIN CONTROLS
-              ========================================= */}
-
-              {isAdmin &&
-                !isCurrentUser &&
-                !isMemberAdmin && (
-                  <div>
-                    <button
-                      onClick={() =>
-                        openConfirmation(
-                          "remove",
-                          member
-                        )
-                      }
-                    >
-                      Remove
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        openConfirmation(
-                          "transfer",
-                          member
-                        )
-                      }
-                    >
-                      Transfer Admin
-                    </button>
-                  </div>
-                )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* =================================================
-          ACTION BUTTONS
-      ================================================= */}
-
-      <div>
-        {/* Admin only */}
-        {isAdmin && (
-          <button
-            onClick={() =>
-              navigate(`/add-member/${groupId}`)
-            }
-          >
-            Add Member
-          </button>
+          </div>
         )}
 
-        <button
-          onClick={() =>
-            navigate(`/add-expense/${groupId}`)
-          }
-        >
-          Add Expense
-        </button>
+        {/* =================================================
+            ADMIN
+        ================================================= */}
 
-        <button
-          onClick={() =>
-            navigate(`/expenses/${groupId}`)
-          }
-        >
-          View Expenses
-        </button>
-      </div>
+        <div style={styles.metaCard}>
+          <p style={styles.metaLine}>Admin: {group.admin?.name}</p>
+          <p style={styles.metaLine}>Created by: {group.createdBy?.name}</p>
 
-      {/* =================================================
-          LEAVE GROUP
-      ================================================= */}
-
-      <div>
-        {isOnlyMember ? (
-            <button
-                onClick={() => openConfirmation("delete")}
-            >
-                Delete Group
-            </button>
-            ) : (
-            <button
-                onClick={() => openConfirmation("leave")}
-            >
-                Leave Group
-            </button>
-        )}
-      </div>
-
-      {/* =================================================
-          CONFIRMATION
-      ================================================= */}
-      {confirmation.type === "delete" && (
-  <>
-    <h2>Delete Group?</h2>
-
-    <p>
-      You are the only member of{" "}
-      <strong>{group.groupName}</strong>.
-    </p>
-
-    <p>
-      Are you sure you want to permanently delete
-      this group?
-    </p>
-
-    <button
-      onClick={closeConfirmation}
-      disabled={loading}
-    >
-      Cancel
-    </button>
-
-    <button
-      onClick={handleDeleteGroup}
-      disabled={loading}
-    >
-      {loading ? "Deleting..." : "Yes, Delete Group"}
-    </button>
-  </>
-)}
-
-      {confirmation.type && (
-        <div>
           <div>
-            {/* ===========================================
-                REMOVE CONFIRMATION
-            =========================================== */}
-
-            {confirmation.type === "remove" && (
-              <>
-                <h2>Remove Member?</h2>
-
-                <p>
-                  Are you sure you want to remove{" "}
-                  <strong>
-                    {confirmation.member?.name}
-                  </strong>{" "}
-                  from this group?
-                </p>
-
-                <button
-                  onClick={closeConfirmation}
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  onClick={handleRemoveMember}
-                  disabled={loading}
-                >
-                  {loading
-                    ? "Removing..."
-                    : "Yes, Remove"}
-                </button>
-              </>
-            )}
-
-            {/* ===========================================
-                TRANSFER ADMIN CONFIRMATION
-            =========================================== */}
-
-            {confirmation.type === "transfer" && (
-              <>
-                <h2>Transfer Admin?</h2>
-
-                <p>
-                  Are you sure you want to make{" "}
-                  <strong>
-                    {confirmation.member?.name}
-                  </strong>{" "}
-                  the new admin?
-                </p>
-
-                <p>
-                  You will lose your admin privileges.
-                </p>
-
-                <button
-                  onClick={closeConfirmation}
-                  disabled={loading}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  onClick={handleTransferAdmin}
-                  disabled={loading}
-                >
-                  {loading
-                    ? "Transferring..."
-                    : "Yes, Transfer"}
-                </button>
-              </>
-            )}
-
-            {/* ===========================================
-                LEAVE CONFIRMATION
-            =========================================== */}
-
-            {confirmation.type === "leave" && (
-              <>
-                <h2>Leave Group?</h2>
-
-                <p>
-                  Are you sure you want to leave{" "}
-                  <strong>
-                    {group.groupName}
-                  </strong>
-                  ?
-                </p>
-
-                {isAdmin ? (
-                  <>
-                    <p>
-                      You are the current admin.
-                    </p>
-
-                    <p>
-                      You must transfer admin to
-                      another member before leaving.
-                    </p>
-
-                    <button
-                      onClick={closeConfirmation}
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        closeConfirmation()
-                      }
-                    >
-                      Transfer Admin
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <p>
-                      You can leave only if all your
-                      payments are completed.
-                    </p>
-
-                    <button
-                      onClick={closeConfirmation}
-                      disabled={loading}
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      onClick={handleLeaveGroup}
-                      disabled={loading}
-                    >
-                      {loading
-                        ? "Leaving..."
-                        : "Yes, Leave Group"}
-                    </button>
-                  </>
-                )}
-              </>
-            )}
+            {isAdmin && <span style={styles.metaTag}>You are the admin</span>}
+            {isCreator && <span style={styles.metaTag}>You are the creator</span>}
           </div>
         </div>
-      )}
+
+        {/* =================================================
+            BALANCE SUMMARY (label + amount on same line)
+        ================================================= */}
+
+        {balance && (
+          <div style={styles.sectionCard}>
+            <h2 style={styles.sectionTitle}>Balance Summary</h2>
+
+            <div style={styles.balanceList}>
+              <div style={styles.balanceRow}>
+                <p style={styles.balanceLabel}>You Paid</p>
+                <p style={styles.balanceValue}>
+                  ₹{Number(balance.totalPaid).toFixed(2)}
+                </p>
+              </div>
+
+              <div style={styles.balanceRow}>
+                <p style={styles.balanceLabel}>You Owe</p>
+                <p style={styles.balanceValue}>
+                  ₹{Number(balance.totalOwe).toFixed(2)}
+                </p>
+              </div>
+
+              <div style={styles.balanceRow}>
+                <p style={styles.balanceLabel}>You Should Receive</p>
+                <p style={styles.balanceValue}>
+                  ₹{Number(balance.totalReceive).toFixed(2)}
+                </p>
+              </div>
+
+              <div style={{ ...styles.balanceRow, borderBottom: "none" }}>
+                <p style={styles.balanceLabel}>Net Balance</p>
+                <p style={styles.balanceValue}>
+                  ₹{Number(balance.netBalance).toFixed(2)}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* =================================================
+            MEMBERS (collapsible dropdown)
+        ================================================= */}
+
+        <div style={styles.sectionCard}>
+          <div
+            style={styles.membersToggle}
+            onClick={() => setMembersOpen((prev) => !prev)}
+          >
+            <h2 style={styles.sectionTitle}>
+              Members ({group.members.length})
+            </h2>
+            <span style={styles.chevron(membersOpen)}>▼</span>
+          </div>
+
+          {membersOpen && (
+            <div style={styles.membersList}>
+              {group.members.map((member) => {
+                const isCurrentUser =
+                  String(member._id) === String(userId);
+
+                const isMemberAdmin =
+                  String(member._id) === String(group.admin?._id);
+                const isMemberCreator =
+                  String(member._id) === String(group.createdBy?._id);
+
+                return (
+                  <div key={member._id} style={styles.memberRow}>
+                    <span style={styles.memberName}>
+                      {member.name}{" "}
+                      {isMemberAdmin && (
+                        <span style={styles.memberTag}>— Admin</span>
+                      )}
+                      {isCurrentUser && (
+                        <span style={styles.memberTag}>— You</span>
+                      )}
+                      {isMemberCreator && (
+                        <span style={styles.memberTag}>— Creator</span>
+                      )}
+                    </span>
+
+                    {/* =========================================
+                        ADMIN CONTROLS
+                    ========================================= */}
+
+                    {isAdmin && !isCurrentUser && !isMemberAdmin && (
+                      <div style={styles.memberActions}>
+                        <button
+                          style={styles.smallButton}
+                          onClick={() => openConfirmation("remove", member)}
+                        >
+                          Remove
+                        </button>
+
+                        <button
+                          style={styles.smallButton}
+                          onClick={() => openConfirmation("transfer", member)}
+                        >
+                          Transfer Admin
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* =================================================
+            ACTION BUTTONS
+        ================================================= */}
+
+        <div style={styles.actionsRow}>
+          {/* Admin only */}
+          {isAdmin && (
+            <button
+              style={styles.secondaryButton}
+              onClick={() => navigate(`/add-member/${groupId}`)}
+            >
+              Add Member
+            </button>
+          )}
+
+          <button
+            style={styles.primaryButton}
+            onClick={() => navigate(`/add-expense/${groupId}`)}
+          >
+            Add Expense
+          </button>
+
+          <button
+            style={styles.secondaryButton}
+            onClick={() => navigate(`/expenses/${groupId}`)}
+          >
+            View Expenses
+          </button>
+        </div>
+
+        {/* =================================================
+            LEAVE GROUP
+        ================================================= */}
+
+        <div>
+          {isOnlyMember ? (
+            <button
+              style={styles.dangerButtonFull}
+              onClick={() => openConfirmation("delete")}
+            >
+              Delete Group
+            </button>
+          ) : (
+            <button
+              style={styles.dangerButtonFull}
+              onClick={() => openConfirmation("leave")}
+            >
+              Leave Group
+            </button>
+          )}
+        </div>
+
+        {/* =================================================
+            CONFIRMATION
+        ================================================= */}
+
+        {confirmation.type === "delete" && (
+          <div style={styles.overlay}>
+            <div style={styles.modal}>
+              <h2 style={styles.modalTitle}>Delete Group?</h2>
+
+              <p style={styles.modalText}>
+                You are the only member of{" "}
+                <strong>{group.groupName}</strong>.
+              </p>
+
+              <p style={styles.modalText}>
+                Are you sure you want to permanently delete this group?
+              </p>
+
+              <div style={styles.modalActions}>
+                <button
+                  style={styles.modalCancelButton}
+                  onClick={closeConfirmation}
+                  disabled={loading}
+                >
+                  Cancel
+                </button>
+
+                <button
+                  style={styles.modalDangerButton}
+                  onClick={handleDeleteGroup}
+                  disabled={loading}
+                >
+                  {loading ? "Deleting..." : "Yes, Delete Group"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {confirmation.type && confirmation.type !== "delete" && (
+          <div style={styles.overlay}>
+            <div style={styles.modal}>
+              {/* ===========================================
+                  REMOVE CONFIRMATION
+              =========================================== */}
+
+              {confirmation.type === "remove" && (
+                <>
+                  <h2 style={styles.modalTitle}>Remove Member?</h2>
+
+                  <p style={styles.modalText}>
+                    Are you sure you want to remove{" "}
+                    <strong>{confirmation.member?.name}</strong> from this
+                    group?
+                  </p>
+
+                  <div style={styles.modalActions}>
+                    <button
+                      style={styles.modalCancelButton}
+                      onClick={closeConfirmation}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      style={styles.modalDangerButton}
+                      onClick={handleRemoveMember}
+                      disabled={loading}
+                    >
+                      {loading ? "Removing..." : "Yes, Remove"}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* ===========================================
+                  TRANSFER ADMIN CONFIRMATION
+              =========================================== */}
+
+              {confirmation.type === "transfer" && (
+                <>
+                  <h2 style={styles.modalTitle}>Transfer Admin?</h2>
+
+                  <p style={styles.modalText}>
+                    Are you sure you want to make{" "}
+                    <strong>{confirmation.member?.name}</strong> the new
+                    admin?
+                  </p>
+
+                  <p style={styles.modalText}>
+                    You will lose your admin privileges.
+                  </p>
+
+                  <div style={styles.modalActions}>
+                    <button
+                      style={styles.modalCancelButton}
+                      onClick={closeConfirmation}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </button>
+
+                    <button
+                      style={styles.modalConfirmButton}
+                      onClick={handleTransferAdmin}
+                      disabled={loading}
+                    >
+                      {loading ? "Transferring..." : "Yes, Transfer"}
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* ===========================================
+                  TRANSFER ADMIN PICKER (from Leave flow)
+              =========================================== */}
+
+              {confirmation.type === "transferPicker" && (
+                <>
+                  <h2 style={styles.modalTitle}>Choose New Admin</h2>
+
+                  <p style={styles.modalText}>
+                    Select a member to make admin of{" "}
+                    <strong>{group.groupName}</strong>. You'll be able to
+                    leave right after.
+                  </p>
+
+                  <div style={styles.transferPickerList}>
+                    {group.members
+                      .filter(
+                        (member) =>
+                          String(member._id) !== String(group.admin?._id)
+                      )
+                      .map((member) => (
+                        <div
+                          key={member._id}
+                          style={styles.transferPickerRow}
+                        >
+                          <span style={styles.transferPickerName}>
+                            {member.name}
+                          </span>
+
+                          <button
+                            style={styles.transferPickerButton}
+                            onClick={() => handleTransferAdmin(member)}
+                            disabled={loading}
+                          >
+                            {loading ? "Transferring..." : "Make Admin"}
+                          </button>
+                        </div>
+                      ))}
+
+                    {group.members.filter(
+                      (member) =>
+                        String(member._id) !== String(group.admin?._id)
+                    ).length === 0 && (
+                      <p style={styles.transferPickerEmpty}>
+                        There are no other members to transfer admin to.
+                      </p>
+                    )}
+                  </div>
+
+                  <div style={styles.modalActions}>
+                    <button
+                      style={styles.modalCancelButton}
+                      onClick={closeConfirmation}
+                      disabled={loading}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              )}
+
+              {/* ===========================================
+                  LEAVE CONFIRMATION
+              =========================================== */}
+
+              {confirmation.type === "leave" && (
+                <>
+                  <h2 style={styles.modalTitle}>Leave Group?</h2>
+
+                  <p style={styles.modalText}>
+                    Are you sure you want to leave{" "}
+                    <strong>{group.groupName}</strong>?
+                  </p>
+
+                  {isAdmin ? (
+                    <>
+                      <p style={styles.modalText}>
+                        You are the current admin.
+                      </p>
+
+                      <p style={styles.modalText}>
+                        You must transfer admin to another member before
+                        leaving.
+                      </p>
+
+                      <div style={styles.modalActions}>
+                        <button
+                          style={styles.modalCancelButton}
+                          onClick={closeConfirmation}
+                        >
+                          Cancel
+                        </button>
+
+                        <button
+                          style={styles.modalConfirmButton}
+                          onClick={() =>
+                            setConfirmation({
+                              type: "transferPicker",
+                              member: null,
+                            })
+                          }
+                        >
+                          Transfer Admin
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p style={styles.modalText}>
+                        You can leave only if all your payments are
+                        completed.
+                      </p>
+
+                      <div style={styles.modalActions}>
+                        <button
+                          style={styles.modalCancelButton}
+                          onClick={closeConfirmation}
+                          disabled={loading}
+                        >
+                          Cancel
+                        </button>
+
+                        <button
+                          style={styles.modalDangerButton}
+                          onClick={handleLeaveGroup}
+                          disabled={loading}
+                        >
+                          {loading ? "Leaving..." : "Yes, Leave Group"}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
