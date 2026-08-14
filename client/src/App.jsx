@@ -11,7 +11,7 @@ import AddMember from "./pages/AddMember";
 import AddExpense from "./pages/AddExpense";
 import Expense from "./pages/Expense";
 import EditExpense from "./pages/EditExpense";
-import GroupDetails from "./pages/groupDetails";
+import GroupDetails from "./pages/GroupDetails";
 function App() {
   return (
     <BrowserRouter>
