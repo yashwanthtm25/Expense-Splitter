@@ -340,36 +340,34 @@ Authorization: Bearer <token>
 
 ---
 
-## 🔑 Environment Variables
+## ⚙️ Installation & Setup
 
-Create a `.env` file inside the `server` directory:
+### 🌐 Live Application
 
-```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret
-RESEND_API_KEY=your_resend_api_key
-CLIENT_URL=your_client_url
-```
-Create a `.env` file inside the `client` directory:
+The Expense Splitter application is deployed and can be accessed here:
 
-```env
-VITE_API_URL=your_vite_api_url
-```
+**Frontend:**
+https://expense-splitter-khaki.vercel.app/
 
-> ⚠️ Do not commit `.env` files or secret credentials to GitHub. Make sure `.env` is included in `.gitignore`:
-```
-node_modules/
-.env
-```
+**Backend:**
+https://expense-splitter-y4zj.onrender.com/
+
+The application uses:
+- **Vercel** — Frontend hosting
+- **Render** — Backend hosting
+- **MongoDB Atlas** — Database
+
+You can directly open the frontend URL and create an account to use the application.
 
 ---
 
-## ⚙️ Installation & Setup
+### 💻 Run Locally
+
+If you want to run the project on your own system, follow the steps below.
 
 ### 1. Clone the Repository
 ```bash
-git clone YOUR_GITHUB_REPOSITORY_URL
+git clone https://github.com/yashwanthtm25/Expense-Splitter.git
 cd Expense-Splitter
 ```
 
@@ -379,24 +377,87 @@ cd server
 npm install
 ```
 
-Create the `.env` file (see [Environment Variables](#-environment-variables) above), then start the backend:
+Create a `.env` file inside the `server` directory.
+
+Example:
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+JWT_SECRET=your_jwt_secret
+CLIENT_URL=http://localhost:5173
+RESEND_API_KEY=your_resend_api_key
+```
+
+Then start the backend:
 ```bash
 npm start
-# or, if the project uses nodemon:
+# or, if nodemon is configured:
 npm run dev
 ```
 
-The backend will run on: `http://localhost:5000`
+The backend will run on:
+`http://localhost:5000`
 
 ### 3. 💻 Frontend Setup
 Open another terminal:
 ```bash
 cd client
 npm install
+```
+
+Create a `.env` file inside the `client` directory:
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+Then start the frontend:
+```bash
 npm run dev
 ```
 
 Open the URL shown by Vite in the terminal.
+Usually:
+`http://localhost:5173`
+
+---
+
+## 🔐 Environment Variables
+
+For security reasons, environment variables are not included in the repository.
+
+### Backend
+The `server/.env` file requires:
+
+| Variable | Description |
+|----------|-------------|
+| `PORT` | Port on which the Express server runs |
+| `MONGO_URI` | MongoDB Atlas connection string |
+| `JWT_SECRET` | Secret key used for JWT authentication |
+| `CLIENT_URL` | Frontend URL used for password reset links |
+| `RESEND_API_KEY` | Resend API key used to send password reset emails |
+
+### Frontend
+The `client/.env` file requires:
+
+| Variable | Description |
+|----------|-------------|
+| `VITE_API_URL` | Backend API URL |
+
+For local development:
+```env
+VITE_API_URL=http://localhost:5000
+```
+
+For the deployed application:
+```env
+VITE_API_URL=https://expense-splitter-y4zj.onrender.com
+```
+
+> ⚠️ Never commit `.env` files or API keys to GitHub. Make sure `.env` is included in `.gitignore`:
+```
+node_modules/
+.env
+```
 
 ---
 
