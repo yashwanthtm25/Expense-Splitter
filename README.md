@@ -348,6 +348,13 @@ Create a `.env` file inside the `server` directory:
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
+RESEND_API_KEY=your_resend_api_key
+CLIENT_URL=your_client_url
+```
+Create a `.env` file inside the `client` directory:
+
+```env
+VITE_API_URL=your_vite_api_url
 ```
 
 > ⚠️ Do not commit `.env` files or secret credentials to GitHub. Make sure `.env` is included in `.gitignore`:
