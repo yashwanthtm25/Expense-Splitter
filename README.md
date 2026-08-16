@@ -347,7 +347,7 @@ Authorization: Bearer <token>
 The Expense Splitter application is deployed and can be accessed here:
 
 **Frontend:**
-https://expense-splitter-khaki.vercel.app/
+https://expense-splitter-87tqtbjh6-legends-b3fc.vercel.app/
 
 **Backend:**
 https://expense-splitter-y4zj.onrender.com/
