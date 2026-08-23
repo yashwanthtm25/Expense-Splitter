@@ -6,24 +6,15 @@ import toast from "react-hot-toast";
 
 const API_BASE_URL = `${import.meta.env.VITE_API_URL}/api`;
 
-const formatAmount = (value) => Number(value).toFixed(2);
-
 const Expense = () => {
   const [expenses, setExpenses] = useState([]);
   const [user, setUser] = useState(null);
-  const [selectedSplit, setSelectedSplit] = useState(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [sort, setSort] = useState("newest");
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [markingPaid, setMarkingPaid] = useState(false);
-
-  // Per-card dropdown state (keyed by expense id)
-  const [expandedCards, setExpandedCards] = useState({});
-  const [expandedPayers, setExpandedPayers] = useState({});
-  const [expandedHistory, setExpandedHistory] = useState({});
 
   const navigate = useNavigate();
   const { groupId } = useParams();
@@ -71,57 +62,6 @@ const Expense = () => {
     fetchExpense();
   }, [fetchExpense]);
 
-  // --------------------------------------------------
-  // Mark a split as paid
-  // --------------------------------------------------
-
-  const handleMarkPaid = async (expenseId, userId) => {
-    try {
-      setMarkingPaid(true);
-
-      const token = localStorage.getItem("token");
-
-      await axios.patch(
-        `${API_BASE_URL}/expenses/${expenseId}/pay/${userId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      toast.success("Payment marked as paid");
-
-      setSelectedSplit(null);
-
-      await fetchExpense();
-    } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to mark payment as paid"
-      );
-    } finally {
-      setMarkingPaid(false);
-    }
-  };
-
-  // --------------------------------------------------
-  // Dropdown toggles
-  // --------------------------------------------------
-
-  const toggleCard = (id) =>
-    setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
-
-  const togglePayers = (id, e) => {
-    e.stopPropagation();
-    setExpandedPayers((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
-  const toggleHistory = (id, e) => {
-    e.stopPropagation();
-    setExpandedHistory((prev) => ({ ...prev, [id]: !prev[id] }));
-  };
-
   const styles = {
     page: {
       minHeight: "100vh",
@@ -162,11 +102,33 @@ const Expense = () => {
       textDecoration: "none",
       fontSize: "14px",
     },
+    headerRow: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "16px",
+      marginBottom: "24px",
+    },
     heading: {
       fontSize: "26px",
       fontWeight: 700,
       color: "#1f2937",
-      margin: "0 0 24px 0",
+      margin: 0,
+    },
+    addButton: {
+      display: "inline-flex",
+      alignItems: "center",
+      gap: "6px",
+      padding: "12px 20px",
+      borderRadius: "10px",
+      border: "none",
+      background: "#4f46e5",
+      color: "#fff",
+      fontSize: "14px",
+      fontWeight: 700,
+      cursor: "pointer",
+      whiteSpace: "nowrap",
+      transition: "background 0.15s ease, transform 0.15s ease",
     },
     emptyState: {
       background: "#fff",
@@ -187,218 +149,9 @@ const Expense = () => {
       cursor: "pointer",
       padding: 0,
     },
-    expenseCard: {
-      background: "#fff",
-      borderRadius: "12px",
-      padding: "20px 24px",
-      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
-      marginBottom: "18px",
-    },
-    cardHeaderRow: {
-      display: "flex",
-      alignItems: "flex-start",
-      justifyContent: "space-between",
-      gap: "12px",
-      cursor: "pointer",
-      userSelect: "none",
-    },
-    expenseHeader: {
-      display: "flex",
-      flex: 1,
-      justifyContent: "space-between",
-      alignItems: "flex-start",
-      flexWrap: "wrap",
-      gap: "8px",
-    },
-    expenseName: {
-      margin: 0,
-      fontSize: "19px",
-      fontWeight: 700,
-      color: "#1f2937",
-    },
-    expenseAmount: {
-      margin: 0,
-      fontSize: "19px",
-      fontWeight: 700,
-      color: "#4f46e5",
-    },
-    cardChevron: (open) => ({
-      display: "inline-block",
-      marginTop: "3px",
-      fontSize: "13px",
-      color: "#9ca3af",
-      transition: "transform 0.2s ease",
-      transform: open ? "rotate(180deg)" : "rotate(0deg)",
-      flexShrink: 0,
-    }),
-    cardBody: {
-      marginTop: "14px",
-      paddingTop: "14px",
-      borderTop: "1px solid #f3f4f6",
-    },
-    descriptionBox: {
-      position: "relative",
-      background: "#f9fafb",
-      borderLeft: "3px solid #c7d2fe",
-      borderRadius: "8px",
-      padding: "12px 16px 12px 18px",
-      margin: "0 0 18px 0",
-      fontSize: "14px",
-      fontStyle: "italic",
-      color: "#4b5563",
-      lineHeight: 1.55,
-    },
-    paidByText: {
-      margin: "8px 0 0 0",
-      fontSize: "13px",
-      color: "#9ca3af",
-    },
-    sectionToggle: {
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "space-between",
-      cursor: "pointer",
-      userSelect: "none",
-      padding: "4px 0",
-      marginTop: "16px",
-    },
-    subheading: {
-      margin: 0,
-      fontSize: "13px",
-      fontWeight: 700,
-      color: "#374151",
-      textTransform: "uppercase",
-      letterSpacing: "0.03em",
-    },
-    sectionChevron: (open) => ({
-      display: "inline-block",
-      fontSize: "12px",
-      color: "#9ca3af",
-      transition: "transform 0.2s ease",
-      transform: open ? "rotate(180deg)" : "rotate(0deg)",
-    }),
-    sectionContent: {
-      marginTop: "8px",
-    },
-    splitRow: {
-      display: "flex",
-      justifyContent: "space-between",
-      alignItems: "center",
-      padding: "10px 0",
-      borderBottom: "1px solid #f3f4f6",
-    },
-    splitPersonAmount: {
-      fontSize: "14px",
-      color: "#374151",
-    },
-    paidTag: {
-      fontSize: "13px",
-      fontWeight: 600,
-      color: "#16a34a",
-    },
-    removeButton: {
-      padding: "6px 14px",
-      borderRadius: "6px",
-      border: "1px solid #d1d5db",
-      background: "#fff",
-      color: "#374151",
-      fontSize: "13px",
-      fontWeight: 600,
-      cursor: "pointer",
-    },
-    editButton: {
-      marginTop: "14px",
-      padding: "8px 16px",
-      borderRadius: "8px",
-      border: "1px solid #4f46e5",
-      background: "#fff",
-      color: "#4f46e5",
-      fontSize: "13px",
-      fontWeight: 600,
-      cursor: "pointer",
-    },
-    yourShareOwed: {
-      fontSize: "14px",
-      color: "#dc2626",
-      fontWeight: 600,
-      margin: "16px 0 0 0",
-    },
-    yourSharePaid: {
-      fontSize: "14px",
-      color: "#16a34a",
-      fontWeight: 600,
-      margin: "16px 0 0 0",
-    },
-    historyEntry: {
-      display: "flex",
-      justifyContent: "space-between",
-      padding: "8px 0",
-      borderBottom: "1px solid #f3f4f6",
-      fontSize: "13px",
-      color: "#6b7280",
-    },
-    emptyHistory: {
-      fontSize: "13px",
-      color: "#9ca3af",
-      margin: 0,
-      padding: "6px 0",
-    },
-    overlay: {
-      position: "fixed",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      background: "rgba(17, 24, 39, 0.5)",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      padding: "20px",
-      zIndex: 50,
-    },
-    modal: {
-      background: "#fff",
-      borderRadius: "14px",
-      padding: "28px",
-      maxWidth: "380px",
-      width: "100%",
-      boxShadow: "0 20px 40px rgba(0, 0, 0, 0.2)",
-    },
-    modalText: {
-      margin: "0 0 22px 0",
-      fontSize: "15px",
-      color: "#1f2937",
-    },
-    modalActions: {
-      display: "flex",
-      gap: "10px",
-    },
-    modalCancelButton: {
-      flex: 1,
-      padding: "11px 16px",
-      borderRadius: "8px",
-      border: "1px solid #d1d5db",
-      background: "#fff",
-      color: "#374151",
-      fontSize: "14px",
-      fontWeight: 600,
-      cursor: "pointer",
-    },
-    modalConfirmButton: {
-      flex: 1,
-      padding: "11px 16px",
-      borderRadius: "8px",
-      border: "none",
-      background: "#4f46e5",
-      color: "#fff",
-      fontSize: "14px",
-      fontWeight: 600,
-      cursor: "pointer",
-    },
     searchContainer: {
       marginBottom: "14px",
     },
-
     searchInput: {
       width: "100%",
       boxSizing: "border-box",
@@ -408,14 +161,12 @@ const Expense = () => {
       fontSize: "14px",
       outline: "none",
     },
-
     filterContainer: {
       display: "flex",
       gap: "8px",
       flexWrap: "wrap",
       marginBottom: "24px",
     },
-
     filterButton: {
       padding: "8px 13px",
       borderRadius: "7px",
@@ -426,7 +177,6 @@ const Expense = () => {
       fontWeight: 600,
       cursor: "pointer",
     },
-
     activeFilterButton: {
       padding: "8px 13px",
       borderRadius: "7px",
@@ -443,7 +193,6 @@ const Expense = () => {
       gap: "10px",
       marginBottom: "24px",
     },
-
     sortLabel: {
       fontSize: "13px",
       fontWeight: 600,
@@ -451,7 +200,6 @@ const Expense = () => {
       textTransform: "uppercase",
       letterSpacing: "0.03em",
     },
-
     sortSelect: {
       padding: "9px 34px 9px 14px",
       borderRadius: "8px",
@@ -466,7 +214,64 @@ const Expense = () => {
       appearance: "none",
       WebkitAppearance: "none",
       MozAppearance: "none",
-      transition: "border-color 0.15s ease, box-shadow 0.15s ease",
+    },
+    // Simple list card, matching the "My Groups" reference style
+    expenseCard: {
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      gap: "18px",
+      background: "#fff",
+      borderRadius: "14px",
+      padding: "22px 26px",
+      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.08)",
+      marginBottom: "16px",
+      cursor: "pointer",
+      textDecoration: "none",
+      transition: "transform 0.15s ease, box-shadow 0.15s ease",
+    },
+    expenseTextWrap: {
+      display: "flex",
+      flexDirection: "column",
+      gap: "6px",
+      minWidth: 0,
+      flex: 1,
+    },
+    expenseName: {
+      margin: 0,
+      fontSize: "18px",
+      fontWeight: 700,
+      color: "#1f2937",
+      lineHeight: 1.3,
+      letterSpacing: "-0.01em",
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
+    },
+    expenseDescription: {
+      margin: 0,
+      fontSize: "14px",
+      fontWeight: 400,
+      color: "#8b93a1",
+      lineHeight: 1.5,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      display: "-webkit-box",
+      WebkitLineClamp: 2,
+      WebkitBoxOrient: "vertical",
+    },
+    noDescription: {
+      margin: 0,
+      fontSize: "14px",
+      fontWeight: 400,
+      fontStyle: "italic",
+      color: "#c1c6cf",
+    },
+    arrow: {
+      flexShrink: 0,
+      fontSize: "18px",
+      color: "#9ca3af",
+      transition: "transform 0.15s ease",
     },
   };
 
@@ -585,7 +390,28 @@ const Expense = () => {
           ← Back to Group
         </Link>
 
-        <h1 style={styles.heading}>Expenses</h1>
+        {/* =========================
+    HEADER
+   ========================= */}
+
+        <div style={styles.headerRow}>
+          <h1 style={styles.heading}>Expenses</h1>
+
+          <button
+            style={styles.addButton}
+            onClick={() => navigate(`/add-expense/${groupId}`)}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = "#4338ca";
+              e.currentTarget.style.transform = "translateY(-1px)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = "#4f46e5";
+              e.currentTarget.style.transform = "translateY(0)";
+            }}
+          >
+            + Add Expense
+          </button>
+        </div>
 
         {/* =========================
     SEARCH
@@ -665,14 +491,6 @@ const Expense = () => {
             value={sort}
             onChange={(e) => setSort(e.target.value)}
             style={styles.sortSelect}
-            onFocus={(e) => {
-              e.target.style.borderColor = "#4f46e5";
-              e.target.style.boxShadow = "0 0 0 3px rgba(79, 70, 229, 0.15)";
-            }}
-            onBlur={(e) => {
-              e.target.style.borderColor = "#d1d5db";
-              e.target.style.boxShadow = "none";
-            }}
           >
             <option value="newest">Newest</option>
             <option value="oldest">Oldest</option>
@@ -702,243 +520,48 @@ const Expense = () => {
             )}
           </div>
         ) : (
-          sortedExpenses.map((expense) => {
-            const isPayer = String(expense.paidBy._id) === String(user._id);
-
-            const isCardOpen = !!expandedCards[expense._id];
-            const isPayersOpen = !!expandedPayers[expense._id];
-            const isHistoryOpen = !!expandedHistory[expense._id];
-
-            const unpaidSplits = expense.splits.filter(
-              (split) => !split.paid
-            );
-            const paidHistory = expense.splits.filter(
-              (split) => split.paid && split.paidAt
-            );
-
-            return (
-              <div key={expense._id} style={styles.expenseCard}>
-                {/* =========================
-                    CARD HEADER (click to expand/collapse)
-                   ========================= */}
-
-                <div
-                  style={styles.cardHeaderRow}
-                  onClick={() => toggleCard(expense._id)}
-                >
-                  <div style={styles.expenseHeader}>
-                    <h2 style={styles.expenseName}>{expense.expenseName}</h2>
-                    <p style={styles.expenseAmount}>
-                      ₹{formatAmount(expense.amount)}
-                    </p>
-                  </div>
-
-                  <span style={styles.cardChevron(isCardOpen)}>▼</span>
-                </div>
-
-                <p style={styles.paidByText}>
-                  Paid by {expense.paidBy.name} {isPayer ? "(You)" : ""}
-                </p>
-
-                {isCardOpen && (
-                  <div style={styles.cardBody}>
-                    {/* =========================
-                        DESCRIPTION
-                       ========================= */}
-
-                    {expense.description && (
-                      <div style={styles.descriptionBox}>
-                        {expense.description}
-                      </div>
-                    )}
-
-                    {/* =========================
-                        PAYER VIEW
-                       ========================= */}
-
-                    {isPayer ? (
-                      <>
-                        <div
-                          style={styles.sectionToggle}
-                          onClick={(e) => togglePayers(expense._id, e)}
-                        >
-                          <p style={styles.subheading}>
-                            People who need to pay you
-                            {unpaidSplits.length > 0
-                              ? ` (${unpaidSplits.length})`
-                              : ""}
-                          </p>
-                          <span style={styles.sectionChevron(isPayersOpen)}>
-                            ▼
-                          </span>
-                        </div>
-
-                        {isPayersOpen && (
-                          <div style={styles.sectionContent}>
-                            {expense.splits.map((split) => (
-                              <div
-                                key={split.user._id}
-                                style={styles.splitRow}
-                              >
-                                <span style={styles.splitPersonAmount}>
-                                  {split.user.name} — ₹
-                                  {formatAmount(split.amount)}
-                                </span>
-
-                                {split.paid ? (
-                                  <span style={styles.paidTag}>✓ Paid</span>
-                                ) : (
-                                  <button
-                                    style={styles.removeButton}
-                                    onClick={() =>
-                                      setSelectedSplit({
-                                        expenseId: expense._id,
-                                        userId: split.user._id,
-                                        userName: split.user.name,
-                                      })
-                                    }
-                                  >
-                                    Mark as Paid
-                                  </button>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        )}
-
-                        {/* Edit belongs to the expense,
-                            not to each split */}
-
-                        <button
-                          style={styles.editButton}
-                          onClick={() =>
-                            navigate(`/edit-expense/${expense._id}`)
-                          }
-                        >
-                          Edit
-                        </button>
-                      </>
-                    ) : (
-                      /* =========================
-                         MEMBER VIEW
-                         ========================= */
-
-                      expense.splits.map((split) => {
-                        if (String(split.user._id) !== String(user._id)) {
-                          return null;
-                        }
-
-                        return split.paid ? (
-                          <p
-                            key={split.user._id}
-                            style={styles.yourSharePaid}
-                          >
-                            ✓ You have paid your share
-                          </p>
-                        ) : (
-                          <p
-                            key={split.user._id}
-                            style={styles.yourShareOwed}
-                          >
-                            You need to pay: ₹{formatAmount(split.amount)}
-                          </p>
-                        );
-                      })
-                    )}
-
-                    {/* =========================
-                        PAYMENT HISTORY (both views)
-                       ========================= */}
-
-                    <div
-                      style={styles.sectionToggle}
-                      onClick={(e) => toggleHistory(expense._id, e)}
-                    >
-                      <p style={styles.subheading}>
-                        Payment History
-                        {paidHistory.length > 0
-                          ? ` (${paidHistory.length})`
-                          : ""}
-                      </p>
-                      <span style={styles.sectionChevron(isHistoryOpen)}>
-                        ▼
-                      </span>
-                    </div>
-
-                    {isHistoryOpen && (
-                      <div style={styles.sectionContent}>
-                        {paidHistory.length === 0 ? (
-                          <p style={styles.emptyHistory}>No payments yet</p>
-                        ) : (
-                          paidHistory.map((split) => (
-                            <div
-                              key={`${expense._id}-${split.user._id}`}
-                              style={styles.historyEntry}
-                            >
-                              <span>
-                                {split.user.name} paid ₹
-                                {formatAmount(split.amount)}
-                              </span>
-
-                              <span>
-                                {new Date(split.paidAt).toLocaleDateString(
-                                  "en-IN",
-                                  {
-                                    day: "numeric",
-                                    month: "short",
-                                    year: "numeric",
-                                  }
-                                )}
-                              </span>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    )}
-                  </div>
+          sortedExpenses.map((expense) => (
+            <div
+              key={expense._id}
+              style={styles.expenseCard}
+              onClick={() =>
+                navigate(`/groups/${groupId}/expenses/${expense._id}`)
+              }
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-2px)";
+                e.currentTarget.style.boxShadow =
+                  "0 12px 28px rgba(0, 0, 0, 0.12)";
+                e.currentTarget.querySelector(
+                  "[data-arrow]"
+                ).style.transform = "translateX(3px)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow =
+                  "0 8px 24px rgba(0, 0, 0, 0.08)";
+                e.currentTarget.querySelector(
+                  "[data-arrow]"
+                ).style.transform = "translateX(0)";
+              }}
+            >
+              <div style={styles.expenseTextWrap}>
+                <p style={styles.expenseName}>{expense.expenseName}</p>
+                {expense.description ? (
+                  <p style={styles.expenseDescription}>
+                    {expense.description}
+                  </p>
+                ) : (
+                  <p style={styles.noDescription}>No description</p>
                 )}
               </div>
-            );
-          })
+
+              <span data-arrow style={styles.arrow}>
+                →
+              </span>
+            </div>
+          ))
         )}
       </div>
-
-      {/* =========================
-          PAYMENT CONFIRMATION
-         ========================= */}
-
-      {selectedSplit && (
-        <div style={styles.overlay}>
-          <div style={styles.modal}>
-            <p style={styles.modalText}>
-              Has <strong>{selectedSplit.userName}</strong> paid you?
-            </p>
-
-            <div style={styles.modalActions}>
-              <button
-                style={styles.modalCancelButton}
-                onClick={() => setSelectedSplit(null)}
-                disabled={markingPaid}
-              >
-                Cancel
-              </button>
-
-              <button
-                style={{
-                  ...styles.modalConfirmButton,
-                  opacity: markingPaid ? 0.7 : 1,
-                }}
-                onClick={() =>
-                  handleMarkPaid(selectedSplit.expenseId, selectedSplit.userId)
-                }
-                disabled={markingPaid}
-              >
-                {markingPaid ? "Confirming..." : "Confirm"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

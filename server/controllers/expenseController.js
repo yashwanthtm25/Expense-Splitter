@@ -1,5 +1,6 @@
 const Expense = require("../models/Expense");
 const Group = require("../models/Group");
+const Notification = require("../models/Notification");
 
 // Add an expense
 exports.addExpense = async (req, res) => {
@@ -12,7 +13,6 @@ exports.addExpense = async (req, res) => {
       splitType = "equal",
       splits,
     } = req.body;
-
     // Validate amount
     if (!amount || amount <= 0) {
       return res.status(400).json({
@@ -168,6 +168,33 @@ exports.addExpense = async (req, res) => {
       expenseName: expenseName.trim(),
     });
 
+    // =====================================
+    // CREATE NOTIFICATIONS
+    // =====================================
+
+    const notifications = expense.splits
+      .filter(
+        (split) =>
+          split.user.toString() !== req.user._id.toString() &&
+          split.amount >= 0
+      )
+      .map((split) => ({
+        recipient: split.user,
+        sender: req.user._id,
+        type: "EXPENSE_ADDED",
+        message: `${req.user.name} added expense "${expense.expenseName}" of ₹${expense.amount} in group "${group.groupName}". Your share is ₹${split.amount.toFixed(2)}.`,
+        group: groupId,
+        expense: expense._id,
+      }));
+
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
+
+    // =====================================
+    // RESPONSE
+    // =====================================
+
     res.status(201).json({
       message: "Expense added successfully",
       expense,
@@ -227,7 +254,7 @@ exports.markSplitPaid = async (req, res) => {
   try {
     const { expenseId, userId } = req.params;
 
-    const expense = await Expense.findById(expenseId);
+    const expense = await Expense.findById(expenseId).populate("group", "groupName");
 
     if (!expense) {
       return res.status(404).json({
@@ -261,7 +288,14 @@ exports.markSplitPaid = async (req, res) => {
     split.paid = true;
     split.paidAt = new Date();
     await expense.save();
-
+    await Notification.create({
+      recipient: userId,
+      sender: req.user._id,
+      type: "SPLIT_PAID",
+      message: `${req.user.name} marked your share ₹${split.amount.toFixed(2)} of the expense "${expense.expenseName}" in group "${expense.group.groupName}" as paid.`,
+      group: expense.group._id,
+      expense: expense._id,
+    });
     res.status(200).json({
       message: "Payment marked as paid",
       expense,
@@ -319,12 +353,21 @@ exports.getExpenseById = async (req, res) => {
     });
   }
 };
+
 exports.editExpense = async (req, res) => {
   try {
     const { expenseId } = req.params;
-    const { amount, description, expenseName, splits} = req.body;
+    const {
+      amount,
+      description,
+      expenseName,
+      splits,
+    } = req.body;
 
-    const expense = await Expense.findById(expenseId);
+    const expense = await Expense.findById(expenseId).populate(
+      "group",
+      "groupName members"
+    );
 
     if (!expense) {
       return res.status(404).json({
@@ -332,15 +375,18 @@ exports.editExpense = async (req, res) => {
       });
     }
 
-    // Only the payer can edit the expense
+    // Only payer can edit
     if (
-      expense.paidBy.toString() !==
-      req.user._id.toString()
+      expense.paidBy.toString() !== req.user._id.toString()
     ) {
       return res.status(403).json({
         message: "Only the payer can edit this expense",
       });
     }
+
+    // -----------------------------------------
+    // Check whether any member has already paid
+    // -----------------------------------------
 
     const otherSplits = expense.splits.filter(
       (split) =>
@@ -358,16 +404,16 @@ exports.editExpense = async (req, res) => {
       });
     }
 
-    // Amount validation
-    if (amount !== undefined) {
-      if (amount <= 0) {
-        return res.status(400).json({
-          message: "Amount must be greater than 0",
-        });
-      }
+    // -----------------------------------------
+    // Validation
+    // -----------------------------------------
+
+    if (amount !== undefined && amount <= 0) {
+      return res.status(400).json({
+        message: "Amount must be greater than 0",
+      });
     }
 
-    // Description validation
     if (
       description !== undefined &&
       description.trim() === ""
@@ -377,7 +423,6 @@ exports.editExpense = async (req, res) => {
       });
     }
 
-    // Expense name validation
     if (
       expenseName !== undefined &&
       expenseName.trim() === ""
@@ -387,32 +432,262 @@ exports.editExpense = async (req, res) => {
       });
     }
 
-    // Update other fields
+    // -----------------------------------------
+    // Store OLD values before changing anything
+    // -----------------------------------------
+
+    const oldAmount = Number(expense.amount);
+    const oldExpenseName = expense.expenseName;
+    const oldDescription = expense.description;
+    const oldSplits = expense.splits.map((split) => ({
+      user: split.user.toString(),
+      amount: Number(split.amount),
+    }));
+
+    // -----------------------------------------
+    // Determine changes
+    // -----------------------------------------
+
+    const amountChanged =
+      amount !== undefined &&
+      Number(amount) !== oldAmount;
+
+    const nameChanged =
+      expenseName !== undefined &&
+      expenseName.trim() !== oldExpenseName;
+
+    const descriptionChanged =
+      description !== undefined &&
+      description.trim() !== oldDescription;
+
+    let splitsChanged = false;
+
+    if (splits !== undefined) {
+      if (!Array.isArray(splits)) {
+        return res.status(400).json({
+          message: "Invalid splits",
+        });
+      }
+
+      // Compare old and new splits
+      splitsChanged =
+        oldSplits.length !== splits.length ||
+        oldSplits.some((oldSplit) => {
+          const newSplit = splits.find(
+            (split) =>
+              split.user.toString() === oldSplit.user
+          );
+
+          if (!newSplit) return true;
+
+          return (
+            Number(newSplit.amount) !== oldSplit.amount
+          );
+        });
+    }
+
+    // -----------------------------------------
+    // Update fields
+    // -----------------------------------------
+
+    if (amount !== undefined) {
+      expense.amount = Number(amount);
+    }
+
     if (description !== undefined) {
       expense.description = description.trim();
+    }
+    let oldExpense = undefined;
+    if (expenseName !== undefined) {
+      oldExpense = expense.expenseName;
     }
 
     if (expenseName !== undefined) {
       expense.expenseName = expenseName.trim();
     }
-    splits.map((split) => {
-      if(split.amount  > 0 ) {
-        split.paid = false;
-      }
-      if(split.amount === 0) {
-        split.paid = true;
-      }
-      if(split.user === expense.paidBy.toString()) {
-        split.paid = true;
-      }
-    });
-    expense.splits = splits;
+
+    // -----------------------------------------
+    // Update splits
+    // -----------------------------------------
+
+    if (splits !== undefined) {
+      expense.splits = splits.map((split) => ({
+        user: split.user,
+        amount: Number(split.amount),
+        paid:
+          Number(split.amount) === 0 ||
+          split.user.toString() ===
+            expense.paidBy.toString(),
+      }));
+    }
+
     await expense.save();
+
+    // -----------------------------------------
+    // Create notifications
+    // -----------------------------------------
+
+    const notifications = [];
+
+    const members = expense.group.members;
+
+    // Amount + shares changed
+    if (amountChanged && splitsChanged) {
+      for (const memberId of members) {
+        if (
+          memberId.toString() ===
+          req.user._id.toString()
+        ) {
+          continue;
+        }
+
+        notifications.push({
+          recipient: memberId,
+          sender: req.user._id,
+          type: "EXPENSE_AMOUNT_SPLIT_UPDATED",
+          message: `${req.user.name} updated the amount and shares of the expense "${expense.expenseName}" in group "${expense.group.groupName}".`,
+          group: expense.group._id,
+          expense: expense._id,
+        });
+      }
+    }
+
+    // Amount changed only
+    else if (amountChanged) {
+      for (const memberId of members) {
+        if (
+          memberId.toString() ===
+          req.user._id.toString()
+        ) {
+          continue;
+        }
+
+        notifications.push({
+          recipient: memberId,
+          sender: req.user._id,
+          type: "EXPENSE_AMOUNT_UPDATED",
+          message: `${req.user.name} changed the amount of the expense "${expense.expenseName}" in group "${expense.group.groupName}" from ₹${oldAmount.toFixed(
+            2
+          )} to ₹${expense.amount.toFixed(2)}.`,
+          group: expense.group._id,
+          expense: expense._id,
+        });
+      }
+    }
+
+    // Shares changed only
+    else if (splitsChanged) {
+      for (const memberId of members) {
+        if (
+          memberId.toString() ===
+          req.user._id.toString()
+        ) {
+          continue;
+        }
+
+        const newSplit = expense.splits.find(
+          (split) =>
+            split.user.toString() ===
+            memberId.toString()
+        );
+
+        const oldSplit = oldSplits.find(
+          (split) => 
+            split.user.toString() ===
+            memberId.toString()
+        );
+
+        if(oldSplit.amount != newSplit.amount) {
+        notifications.push({
+          recipient: memberId,
+          sender: req.user._id,
+          type: "EXPENSE_SPLIT_UPDATED",
+          message: `${req.user.name} updated your share of the expense "${expense.expenseName}" in group "${expense.group.groupName}" to ₹${Number(
+            newSplit?.amount || 0
+          ).toFixed(2)}.`,
+          group: expense.group._id,
+          expense: expense._id,
+        });
+      }
+      }
+    }
+
+    // Name + description changed
+    if (nameChanged && descriptionChanged) {
+      for (const memberId of members) {
+        if (
+          memberId.toString() ===
+          req.user._id.toString()
+        ) {
+          continue;
+        }
+
+        notifications.push({
+          recipient: memberId,
+          sender: req.user._id,
+          type: "EXPENSE_DETAILS_UPDATED",
+          message: `${req.user.name} updated the name and description of the expense "${oldExpense}" in group "${expense.group.groupName}".`,
+          group: expense.group._id,
+          expense: expense._id,
+        });
+      }
+    }
+
+    // Name changed only
+    else if (nameChanged) {
+      for (const memberId of members) {
+        if (
+          memberId.toString() ===
+          req.user._id.toString()
+        ) {
+          continue;
+        }
+
+        notifications.push({
+          recipient: memberId,
+          sender: req.user._id,
+          type: "EXPENSE_NAME_UPDATED",
+          message: `${req.user.name} changed the expense name from "${oldExpenseName}" to "${expense.expenseName}".`,
+          group: expense.group._id,
+          expense: expense._id,
+        });
+      }
+    }
+
+    // Description changed only
+    else if (descriptionChanged) {
+      for (const memberId of members) {
+        if (
+          memberId.toString() ===
+          req.user._id.toString()
+        ) {
+          continue;
+        }
+
+        notifications.push({
+          recipient: memberId,
+          sender: req.user._id,
+          type: "EXPENSE_DESCRIPTION_UPDATED",
+          message: `${req.user.name} updated the description of the expense "${expense.expenseName}" in group "${expense.group.groupName}".`,
+          group: expense.group._id,
+          expense: expense._id,
+        });
+      }
+    }
+
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
+
+    // -----------------------------------------
+    // Response
+    // -----------------------------------------
 
     res.status(200).json({
       message: "Expense updated successfully",
       expense,
     });
+
   } catch (error) {
     console.error("Update expense error:", error);
 
@@ -421,6 +696,7 @@ exports.editExpense = async (req, res) => {
     });
   }
 };
+
 exports.getGroupBalance = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -556,6 +832,167 @@ exports.getMyBalance = async (req, res) => {
 
     res.status(500).json({
       message: "Failed to fetch balance",
+    });
+  }
+};
+
+exports.requestPayment = async (req, res) => {
+  try {
+    const { expenseId } = req.params;
+
+    const expense = await Expense.findById(expenseId).populate("group", "groupName");
+
+    if (!expense) {
+      return res.status(404).json({
+        message: "Expense not found",
+      });
+    }
+
+    const split = expense.splits.find(
+      (split) =>
+        split.user.toString() === req.user._id.toString()
+    );
+
+    if (!split) {
+      return res.status(403).json({
+        message: "You are not part of this expense",
+      });
+    }
+
+    // Payer does not need to request payment
+    if (
+      expense.paidBy.toString() ===
+      req.user._id.toString()
+    ) {
+      return res.status(400).json({
+        message: "The payer does not need to request payment",
+      });
+    }
+
+    if (split.paid) {
+      return res.status(400).json({
+        message: "Your share is already paid",
+      });
+    }
+
+    if (split.paymentRequested) {
+      return res.status(400).json({
+        message: "Payment request already sent",
+      });
+    }
+
+    split.paymentRequested = true;
+    split.paymentRequestedAt = new Date();
+
+    await expense.save();
+
+    await Notification.create({
+      recipient: expense.paidBy,
+      sender: req.user._id,
+      type: "PAYMENT_REQUESTED",
+      message: `${req.user.name} says they paid ₹${split.amount.toFixed(
+        2
+      )} for the expense "${expense.expenseName}" of group "${expense.group.groupName}".`,
+      group: expense.group._id,
+      expense: expense._id,
+    });
+
+    res.status(200).json({
+      message: "Payment request sent",
+      expense,
+    });
+  } catch (error) {
+    console.error("Request payment error:", error);
+
+    res.status(500).json({
+      message: "Server error",
+    });
+  }
+};
+
+exports.deleteExpense = async (req, res) => {
+  try {
+    const { expenseId } = req.params;
+
+    const expense = await Expense.findById(expenseId)
+      .populate("group", "groupName");
+
+    if (!expense) {
+      return res.status(404).json({
+        message: "Expense not found",
+      });
+    }
+
+    // Only the payer can delete the expense
+    if (
+      expense.paidBy.toString() !==
+      req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        message: "Only the payer can delete this expense",
+      });
+    }
+
+    // Check whether another member has already paid
+    const alreadyPaid = expense.splits.some(
+      (split) =>
+        split.user.toString() !== req.user._id.toString() &&
+        split.paid === true &&
+        split.amount > 0
+    );
+
+    if (alreadyPaid) {
+      return res.status(400).json({
+        message:
+          "Expense cannot be deleted because a member has already paid",
+      });
+    }
+
+    const alreadyReported = expense.splits.some(
+      (split) =>
+        split.user.toString() !== req.user._id.toString() &&
+        split.paymentRequested === true &&
+        split.amount > 0
+    )
+
+    if (alreadyReported) {
+      return res.status(400).json({
+        message:
+          "Expense cannot be deleted because a member has already reported",
+      });
+    }
+
+    // Store affected members before deleting the expense
+    const affectedMembers = expense.splits.filter(
+      (split) =>
+        split.user.toString() !== req.user._id.toString() &&
+        split.amount > 0
+    );
+
+    // Delete expense
+    await Expense.findByIdAndDelete(expenseId);
+
+    // Notify affected members
+    const notifications = affectedMembers.map((split) => ({
+      recipient: split.user,
+      sender: req.user._id,
+      type: "EXPENSE_DELETED",
+      message: `${req.user.name} deleted the expense "${expense.expenseName}" from the group "${expense.group.groupName}".`,
+      group: expense.group._id,
+    }));
+
+    if (notifications.length > 0) {
+      await Notification.insertMany(notifications);
+    }
+
+    res.status(200).json({
+      message: "Expense deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete expense error:", error);
+
+    res.status(500).json({
+      message: "Server error",
     });
   }
 };

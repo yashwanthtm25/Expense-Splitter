@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import Notifications from "../components/Notifications.jsx";
 
 const Dashboard = () => {
+  console.log("DASHBOARD RENDERED");
   const [user, setUser] = useState(null);
 
   const [balance, setBalance] = useState({
@@ -234,9 +236,13 @@ const Dashboard = () => {
       <div style={styles.container}>
         <div style={styles.topRow}>
           <h1 style={styles.heading}>Dashboard</h1>
-          <button style={styles.logoutButton} onClick={handleLogout}>
-            Logout
-          </button>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <Notifications />
+            <button style={styles.logoutButton} onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
         </div>
 
         <div style={styles.welcomeCard}>

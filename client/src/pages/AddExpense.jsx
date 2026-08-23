@@ -346,9 +346,23 @@ const AddExpense = () => {
   return (
     <div style={styles.page}>
       <div style={styles.container}>
-        <Link to={`/groups/${groupId}`} style={styles.backLink}>
-          ← Back to Group
-        </Link>
+        <button
+          onClick={() => navigate(-1)}
+          style={{
+            display: "inline-block",
+            marginBottom: "20px",
+            color: "#6b7280",
+            textDecoration: "none",
+            fontSize: "14px",
+            background: "none",
+            border: "none",
+            padding: 0,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          ← Back
+</button>
 
         <div style={styles.card}>
           <h2 style={styles.heading}>Add Expense</h2>

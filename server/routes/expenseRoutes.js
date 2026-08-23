@@ -8,6 +8,8 @@ const {
   editExpense,
   getGroupBalance,
   getMyBalance,
+  requestPayment,
+  deleteExpense,
 } = require("../controllers/expenseController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -28,4 +30,14 @@ router.patch(
 router.get("/single/:expenseId", authMiddleware, getExpenseById);
 router.put("/edit/:expenseId", authMiddleware, editExpense);
 router.get("/:groupId/balance", authMiddleware, getGroupBalance);
+router.patch(
+  "/:expenseId/request-payment",
+  authMiddleware,
+  requestPayment
+);
+router.delete(
+  "/:expenseId",
+  authMiddleware,
+  deleteExpense
+);
 module.exports = router;

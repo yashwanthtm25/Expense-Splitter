@@ -164,7 +164,7 @@ const GroupDetails = () => {
           },
         }
       );
-
+      navigate(`/groups`);
       toast.success(
         `${member.name} removed from the group`
       );
@@ -916,12 +916,23 @@ const GroupDetails = () => {
               Delete Group
             </button>
           ) : (
-            <button
-              style={styles.dangerButtonFull}
-              onClick={() => openConfirmation("leave")}
-            >
-              Leave Group
-            </button>
+            <>
+              {isAdmin && (
+                <button
+                  style={{ ...styles.dangerButtonFull, marginBottom: "12px" }}
+                  onClick={() => openConfirmation("delete")}
+                >
+                  Delete Group
+                </button>
+              )}
+
+              <button
+                style={styles.dangerButtonFull}
+                onClick={() => openConfirmation("leave")}
+              >
+                Leave Group
+              </button>
+            </>
           )}
         </div>
 
@@ -1027,10 +1038,9 @@ const GroupDetails = () => {
                     >
                       Cancel
                     </button>
-
                     <button
                       style={styles.modalConfirmButton}
-                      onClick={handleTransferAdmin}
+                      onClick={() => handleTransferAdmin(confirmation.member)}
                       disabled={loading}
                     >
                       {loading ? "Transferring..." : "Yes, Transfer"}

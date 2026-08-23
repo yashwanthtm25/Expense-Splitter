@@ -1,6 +1,7 @@
 const Group = require("../models/Group");
 const User = require("../models/User");
 const Expense = require("../models/Expense");
+const Notification = require("../models/Notification");
 // Create a new group
 exports.createGroup = async (req, res) => {
   try {
@@ -106,6 +107,14 @@ exports.addMember = async (req, res) => {
     group.members.push(user._id);
 
     await group.save();
+    
+    await Notification.create({
+      recipient: user._id,
+      sender: req.user._id,
+      type: "MEMBER_ADDED",
+      message: `${req.user.name} added you to the group "${group.groupName}".`,
+      group: group._id,
+    });
 
     res.status(200).json({
       message: "Member added successfully",
@@ -146,11 +155,21 @@ exports.updateGroup = async (req, res) => {
         message: "Only the group admin can update the group",
       });
     }
-
+    const oldGroupName = group.groupName;
     group.groupName = groupName.trim();
 
     await group.save();
 
+    const notifications = group.members.filter(
+      (member) => req.user._id.toString() !== member._id.toString()
+    ).map((member) => ({
+      recipient: member._id,
+      sender: req.user._id,
+      type: "GROUP_NAME_EDIT",
+      message: `${req.user.name} changed the group name from "${oldGroupName}" to "${group.groupName}".`,
+      group: group._id,
+    }));
+    await Notification.insertMany(notifications);
     res.status(200).json({
       message: "Group name updated successfully",
       group,
@@ -167,7 +186,6 @@ exports.transferAdmin = async (req, res) => {
   try {
     const { groupId } = req.params;
     const { newAdminId } = req.body;
-
     if (!newAdminId) {
       return res.status(400).json({
         message: "New admin is required",
@@ -215,6 +233,14 @@ exports.transferAdmin = async (req, res) => {
     group.admin = newAdminId;
 
     await group.save();
+
+    await Notification.create({
+      recipient: newAdminId,
+      sender: req.user._id,
+      type: "ADMIN_TRANSFERRED",
+      message: `${req.user.name} transferred you admin rights of the group "${group.groupName}".`,
+      group: group._id,
+    });
 
     res.status(200).json({
       message: "Admin transferred successfully",
@@ -280,12 +306,6 @@ exports.leaveGroup = async (req, res) => {
       });
     }
 
-    // Remove user from group
-    group.members = group.members.filter(
-      (memberId) =>
-        memberId.toString() !== userId.toString()
-    );
-
     const isPayer = await Expense.find({
       group: groupId,
       "splits.user": userId,
@@ -302,6 +322,24 @@ exports.leaveGroup = async (req, res) => {
           "You cannot leave until all your payments are completed",
       });
     }
+
+    // Remove user from group
+    group.members = group.members.filter(
+      (memberId) =>
+        memberId.toString() !== userId.toString()
+    );
+
+    const notifications = group.members.filter(
+      (memberId) => req.user._id.toString() !== memberId.toString()
+    ).map((memberId) => ({
+      recipient: memberId,
+      sender: req.user._id,
+      type: "MEMBER_LEFT",
+      message: `${req.user.name} left the group "${group.groupName}".`,
+      group: group._id,
+    }));
+
+    await Notification.insertMany(notifications);
     await group.save();
 
     res.status(200).json({
@@ -382,7 +420,13 @@ exports.removeMember = async (req, res) => {
     );
 
     await group.save();
-
+    await Notification.create({
+      recipient: userId,
+      sender: req.user._id,
+      type: "MEMBER_REMOVED",
+      message: `${req.user.name} removed you from the group "${group.groupName}".`,
+      group: group._id,
+    });
     res.status(200).json({
       message: "Member removed successfully",
     });
@@ -454,15 +498,27 @@ exports.deleteGroup = async (req, res) => {
       });
     }
 
-    // Group can be deleted only when admin is the only member
-    if (group.members.length !== 1) {
-      return res.status(400).json({
-        message: "Group can only be deleted when you are the only member",
+    const expenses = await Expense.find({ group: groupId });
+
+    const hasUnpaid = expenses.some((expense) =>
+      expense.splits.some((split) => !split.paid)
+    );
+
+    if (hasUnpaid) {
+      return res.status(403).json({
+        message: "Payments need to be settled.",
       });
     }
-
     await Group.findByIdAndDelete(groupId);
-
+    await Promise.all(expenses.map((expense) => Expense.findByIdAndDelete(expense._id)));
+    const notifications = group.members.filter((member) => req.user._id.toString() !== member.toString()).map((member) => ({
+      recipient: member,
+      sender: req.user._id,
+      type: "GROUP_DELETED",
+      message: `${req.user.name} deleted the group "${group.groupName}"and its expenses.`,
+      group: groupId,
+    }));
+    Notification.insertMany(notifications);
     return res.status(200).json({
       message: "Group deleted successfully",
     });
