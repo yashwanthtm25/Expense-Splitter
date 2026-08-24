@@ -5,7 +5,6 @@ import toast from "react-hot-toast";
 import Notifications from "../components/Notifications.jsx";
 
 const Dashboard = () => {
-  console.log("DASHBOARD RENDERED");
   const [user, setUser] = useState(null);
 
   const [balance, setBalance] = useState({

@@ -244,10 +244,11 @@ const Notifications = () => {
             {open && (
                 <div
                     style={{
-                        position: "absolute",
+                        position: "fixed",
                         right: 0,
                         top: "42px",
                         width: "360px",
+                        maxWidth: "calc(100vw - 24px)",
                         maxHeight: "500px",
                         background: "#fff",
                         borderRadius: "12px",
