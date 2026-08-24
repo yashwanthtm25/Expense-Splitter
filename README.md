@@ -1,6 +1,6 @@
 # Expense Splitter
 
-A deployed full-stack expense management application that helps groups track shared expenses, split costs equally or unequally, manage members, monitor balances, and receive notifications about group and expense activities.
+A deployed full-stack expense management application that helps groups track shared expenses, split costs equally or unequally, manage members, monitor balances, search expenses by name and description, filter expenses by payment status, review payment histories, and receive notifications about group and expense activities.
 
 ## ⚖️ Equal and Unequal Expense Splits
 
@@ -8,6 +8,7 @@ A deployed full-stack expense management application that helps groups track sha
 * **Unequal splits:** Assign custom amounts to individual members based on their share.
 * Track each member’s individual share and payment status.
 * Support expense splitting based on the actual amount owed by each member.
+* Maintain a payment history for every expense.
 
 ## 🚀 Features
 
@@ -23,10 +24,10 @@ A deployed full-stack expense management application that helps groups track sha
 * Create groups
 * Add members using their email
 * Remove members
-* Leave groups
+* Leave group
 * Group admin management
 * Transfer group administration
-* Delete groups and their associated expenses
+* Delete groups and their associated expenses after all payments have been settled
 
 ### 💰 Expense Management
 
@@ -35,9 +36,36 @@ A deployed full-stack expense management application that helps groups track sha
 * Support for custom expense shares
 * Track who paid for an expense
 * View individual shares
+* View the payment history for each expense
+* Record payment-related activity over time
+* Search expenses by expense name
+* Search expenses by expense description
+* Combine expense name and description searches with payment-status filters
+* Filter expenses by:
+
+  * **You Paid:** Expenses where you are the payer
+  * **Paid:** Expenses where your share has been marked as paid
+  * **You Owe:** Expenses where you still owe money
+  * **You Received:** Expenses where another member owes you money
 * Edit expenses
-* Prevent editing expenses when a member has already paid
-* Delete expenses according to payment status
+* Prevent editing expenses when a member has already paid or already reported
+* Prevent deleting an expense if any member with a share greater than zero has reported or marked that share as paid
+
+### 🔎 Expense Search and Filters
+
+Expenses can be searched by:
+
+* Expense name
+* Expense description
+
+Search results can be filtered by the user’s payment relationship with each expense:
+
+* **You Paid:** Shows expenses paid by you.
+* **Paid:** Shows expenses for which your share has been paid.
+* **You Owe:** Shows expenses where you have an outstanding amount to pay.
+* **You Received:** Shows expenses where another member owes you money.
+
+Search and filters can be used together to quickly find relevant expenses. For example, users can search for a specific expense name or description and then filter the results to show only expenses they owe or expenses for which they have received money.
 
 ### 💸 Payment Reporting
 
@@ -45,19 +73,24 @@ A deployed full-stack expense management application that helps groups track sha
 * Track payment status for individual splits
 * Store payment reporting timestamps
 * Track when a payment was marked as paid
+* Maintain a separate payment history for each expense
+* Record payment events and their timestamps
 * Payment status is maintained independently for each member’s share
 
 > Payments are reported in the application; the application does not directly process external payments such as PhonePe or Google Pay.
 
-### 📊 Balance Tracking
+## 📊 Balance Summary
 
-* Calculate the amount a user owes
-* Calculate the amount a user should receive
-* Calculate the user’s net balance
-* Track balances across group expenses
-* Support balances from both equal and unequal expense splits
+* Display the user’s overall balance summary on the dashboard.
+* Show the total amount the user owes.
+* Show the total amount the user should receive.
+* Show the user’s net balance.
+* Display a balance summary for the user inside each group.
+* Track the user’s group-specific balances across all expenses.
+* Support balance calculations for both equal and unequal expense splits.
+* Reflect payment reports and completed payments in balance calculations.
 
-### 🔔 Notifications
+## 🔔 Notifications
 
 Notifications are generated for important group and expense activities, including:
 
@@ -120,8 +153,6 @@ Expense-Splitter/
 ## 🌐 Deployed Application
 
 The application has been deployed and is available for use online.
-
-Add your deployed application URL below:
 
 ```text
 https://expense-splitter-6ujpr3hgx-legends-b3fc.vercel.app/
@@ -206,7 +237,7 @@ Vite will provide the frontend development URL.
 
 ## 🔄 Expense Payment Flow
 
-The application tracks payment reporting for each individual expense split:
+The application tracks payment reporting for each individual expense split and records every payment-related event in the expense’s payment history:
 
 ```text
 UNPAID
@@ -220,7 +251,14 @@ REPORTED
 PAID
 ```
 
-The actual money transfer can happen through external payment services such as PhonePe or Google Pay. The application is responsible for maintaining the reported payment state rather than processing the external transaction.
+Each expense includes a payment history that can contain:
+
+* The member who reported the payment
+* The payment status
+* The date and time of the payment report
+* Other relevant payment-related activity
+
+The actual money transfer can happen through external payment services such as PhonePe or Google Pay. The application is responsible for maintaining the reported payment state and payment history rather than processing the external transaction.
 
 ## 🔒 Business Rules
 
@@ -231,10 +269,21 @@ Some important rules implemented in the backend include:
 * Only the expense payer can edit an expense.
 * Expenses cannot be freely modified after a member has already paid.
 * Payment status is maintained separately for each expense split.
+* Each expense maintains its own payment history.
 * Equal splits divide the total expense evenly among selected members.
 * Unequal splits allow custom amounts for individual members.
 * The total of all unequal shares must match the expense amount.
+* Expense searches match the expense name and description.
+* Payment-status filters identify whether the user paid, has paid, owes money, or should receive money.
+* Search terms and payment-status filters can be combined.
+* Dashboard balances summarize the authenticated user’s balances across all groups.
+* Each group displays a balance summary specific to the authenticated user.
 * Users cannot be added to a group more than once.
+* Members can leave a group when permitted by the group rules.
+* When the group admin leaves, administration must be transferred to another member before leaving.
+* Group admins can delete groups only after all payments associated with the group’s expenses have been settled.
+* Deleting a group also deletes its associated expenses and related group data.
+* An expense cannot be deleted if any member with a share greater than zero has reported or marked their share as paid.
 * Group administration can be transferred when required.
 * Notifications are generated for relevant group and expense changes.
 
@@ -246,7 +295,9 @@ Possible future improvements include:
 * Real-time notifications using WebSockets
 * Background jobs
 * More comprehensive automated testing
-* Improved audit/activity history
+* Improved audit and activity history
+* Enhanced payment history filtering and reporting
+* Additional expense search options
 * Production monitoring and logging
 * Continuous integration and deployment enhancements
 
@@ -259,4 +310,4 @@ https://github.com/yashwanthtm25
 
 ---
 
-Built as a deployed full-stack project to explore real-world expense management, equal and unequal expense splitting, authentication, authorization, business rules, payment reporting, and notification systems.
+Built as a deployed full-stack project to explore real-world expense management, equal and unequal expense splitting, expense search and payment-status filtering, dashboard and group-level balance summaries, authentication, authorization, business rules, payment reporting, payment history tracking, and notification systems.
