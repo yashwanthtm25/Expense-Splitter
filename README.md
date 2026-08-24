@@ -197,7 +197,7 @@ Expense-Splitter/
 The application has been deployed and is available for use online.
 
 ```text
-https://expense-splitter-6ujpr3hgx-legends-b3fc.vercel.app/
+https://expense-splitter-d5cmj8qpn-legends-b3fc.vercel.app/
 ```
 
 ## ⚙️ Installation
