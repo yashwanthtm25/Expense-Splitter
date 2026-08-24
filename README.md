@@ -1,6 +1,6 @@
 # Expense Splitter
 
-A deployed full-stack expense management application that helps groups track shared expenses, split costs equally or unequally, manage members, monitor balances, search expenses by name and description, filter expenses by payment status, review payment histories, and receive notifications about group and expense activities.
+A deployed full-stack expense management application that helps groups track shared expenses, split costs equally or unequally, manage members, monitor balances, search expenses by name and description, filter expenses by payment status, review payment histories, receive notifications about group and expense activities, and securely reset forgotten passwords through email.
 
 ## ⚖️ Equal and Unequal Expense Splits
 
@@ -18,6 +18,12 @@ A deployed full-stack expense management application that helps groups track sha
 * JWT-based authentication
 * Protected API routes
 * Password hashing with bcrypt
+* Forgot-password functionality
+* Password reset through a secure email link
+* Reset-password token expiration for improved security
+* Password reset emails sent using Resend
+* Ability to set a new password without exposing the existing password
+* Secure handling of reset-password requests without revealing whether an email address is registered
 
 ### 👥 Group Management
 
@@ -79,6 +85,39 @@ Search and filters can be used together to quickly find relevant expenses. For e
 
 > Payments are reported in the application; the application does not directly process external payments such as PhonePe or Google Pay.
 
+### 🔑 Forgot Password and Reset Password
+
+Users can recover access to their accounts if they forget their password.
+
+The password recovery flow works as follows:
+
+1. The user selects **Forgot Password** on the login page.
+2. The user enters the email address associated with their account.
+3. The backend generates a secure, time-limited password reset token.
+4. Resend sends a password reset email containing a reset link.
+5. The user opens the link and enters a new password.
+6. The backend validates the token, updates the password securely, and invalidates the reset token.
+7. The user can log in using the new password.
+
+Security measures include:
+
+* Password reset tokens are securely generated.
+* Reset tokens expire after a limited period.
+* Reset tokens are invalidated after successful use.
+* New passwords are hashed with bcrypt before being stored.
+* Reset requests return a generic response to avoid revealing whether an email address exists.
+* Resend is used to deliver password reset emails.
+* The reset link uses the configured frontend URL from `CLIENT_URL`.
+
+Required backend environment variables include:
+
+```env
+RESEND_API_KEY=your_resend_api_key
+CLIENT_URL=http://localhost:5173
+```
+
+For production, configure `CLIENT_URL` with the deployed frontend URL and use a verified sending domain or sender address supported by Resend.
+
 ## 📊 Balance Summary
 
 * Display the user’s overall balance summary on the dashboard.
@@ -129,6 +168,7 @@ Users can:
 * Mongoose
 * JWT
 * bcrypt
+* Resend
 
 ## 📁 Project Structure
 
@@ -137,6 +177,7 @@ Expense-Splitter/
 │
 ├── client/
 │   ├── src/
+│   ├── .env.example
 │   └── ...
 │
 ├── server/
@@ -144,6 +185,7 @@ Expense-Splitter/
 │   ├── middleware/
 │   ├── models/
 │   ├── routes/
+│   ├── .env.example
 │   └── ...
 │
 ├── .gitignore
@@ -185,23 +227,39 @@ npm install
 
 Create a `.env` file inside the `server` directory.
 
-Example:
+For local development, create `server/.env.example` with the following variables:
 
 ```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
+RESEND_API_KEY=your_resend_api_key
+CLIENT_URL=http://localhost:5173
 ```
 
-If your application uses additional environment variables, add them according to your local configuration.
+Copy the example file to `.env` and replace the placeholder values with your actual configuration:
 
-For the frontend, create the required `.env` file and configure:
+```bash
+cp server/.env.example server/.env
+```
+
+For the frontend, create `client/.env.example` with:
 
 ```env
-VITE_API_URL=your_backend_url
+VITE_API_URL=http://localhost:5000
 ```
 
-**Do not commit ****`.env`**** files or secret credentials to GitHub.**
+Copy the example file to `.env`:
+
+```bash
+cp client/.env.example client/.env
+```
+
+For production, set `VITE_API_URL` to your deployed backend URL and set `CLIENT_URL` to your deployed frontend URL.
+
+Use your actual deployed backend and frontend URLs instead of these placeholders. Ensure that `VITE_API_URL` matches the backend URL expected by the frontend, and configure `CLIENT_URL` on the backend to match the deployed frontend origin. The password reset email link is generated using `CLIENT_URL`.
+
+**Do not commit ****`.env`**** files or secret credentials to GitHub.** The `.env.example` files may be committed because they contain placeholder values only.
 
 ## ▶️ Running Locally
 
@@ -286,6 +344,12 @@ Some important rules implemented in the backend include:
 * An expense cannot be deleted if any member with a share greater than zero has reported or marked their share as paid.
 * Group administration can be transferred when required.
 * Notifications are generated for relevant group and expense changes.
+* Password reset requests must use a valid, unexpired reset token.
+* Reset tokens can be used only once.
+* Password reset emails are sent through Resend.
+* New passwords are securely hashed before being saved.
+* Password reset responses should not reveal whether an email address is registered.
+* Password reset links are generated using the configured frontend URL.
 
 ## 📌 Future Improvements
 
@@ -300,6 +364,10 @@ Possible future improvements include:
 * Additional expense search options
 * Production monitoring and logging
 * Continuous integration and deployment enhancements
+* Multi-factor authentication
+* Configurable password reset token expiration
+* Email verification during registration
+* Additional account security and session-management features
 
 ## 👨‍💻 Author
 
@@ -310,4 +378,4 @@ https://github.com/yashwanthtm25
 
 ---
 
-Built as a deployed full-stack project to explore real-world expense management, equal and unequal expense splitting, expense search and payment-status filtering, dashboard and group-level balance summaries, authentication, authorization, business rules, payment reporting, payment history tracking, and notification systems.
+Built as a deployed full-stack project to explore real-world expense management, equal and unequal expense splitting, expense search and payment-status filtering, dashboard and group-level balance summaries, authentication, authorization, business rules, payment reporting, payment history tracking, notification systems, and secure forgot-password and reset-password functionality using Resend.
